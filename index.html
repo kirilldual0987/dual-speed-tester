@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v1.3</title>
+    <title>dual-speed-tester v2.2r</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -486,6 +486,84 @@
         .connection-status-text {
             font-size: 12px;
             color: var(--text-secondary);
+        }
+
+        /* Detection Methods Panel */
+        .detection-methods {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .detection-methods-title {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detection-method-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 11px;
+        }
+
+        .detection-method-item:last-child {
+            border-bottom: none;
+        }
+
+        .detection-method-name {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detection-method-value {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detection-method-value.detected {
+            color: var(--success);
+        }
+
+        .detection-method-value.not-detected {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease, background 0.3s ease;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 10px;
+            color: var(--text-muted);
         }
 
         /* Rating Card */
@@ -1097,7 +1175,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v1.3</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v2.2r</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -1202,6 +1280,40 @@
                         <div class="connection-detail-item">
                             <div class="connection-detail-value" id="conn-detail-rtt">—</div>
                             <div class="connection-detail-label">RTT</div>
+                        </div>
+                    </div>
+
+                    <!-- Detection Methods Panel -->
+                    <div class="detection-methods" id="detection-methods">
+                        <div class="detection-methods-title">
+                            <i class="fas fa-microscope"></i> Методы определения
+                        </div>
+                        <div class="detection-method-item">
+                            <span class="detection-method-name"><i class="fas fa-mobile-alt"></i> Тип устройства</span>
+                            <span class="detection-method-value" id="detect-device">—</span>
+                        </div>
+                        <div class="detection-method-item">
+                            <span class="detection-method-name"><i class="fas fa-network-wired"></i> Network API</span>
+                            <span class="detection-method-value" id="detect-network-api">—</span>
+                        </div>
+                        <div class="detection-method-item">
+                            <span class="detection-method-name"><i class="fas fa-project-diagram"></i> WebRTC</span>
+                            <span class="detection-method-value" id="detect-webrtc">—</span>
+                        </div>
+                        <div class="detection-method-item">
+                            <span class="detection-method-name"><i class="fas fa-chart-line"></i> Анализ латентности</span>
+                            <span class="detection-method-value" id="detect-latency">—</span>
+                        </div>
+                        <div class="detection-method-item">
+                            <span class="detection-method-name"><i class="fas fa-tachometer-alt"></i> Анализ скорости</span>
+                            <span class="detection-method-value" id="detect-speed">—</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill" style="width: 0%; background: var(--text-muted);"></div>
+                        </div>
+                        <div class="confidence-label">
+                            <span>Уверенность определения</span>
+                            <span id="confidence-value">0%</span>
                         </div>
                     </div>
 
@@ -1383,7 +1495,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v1.3 | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v2.2r | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1392,164 +1504,812 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v1.3 | CDN-edition v2
-        // Real Connection Type Detection
+        // DUAL-SPEED-TESTER v2.2r | CDN-edition v2
+        // Advanced Connection Type Detection System
         // ===========================================================================
 
-        // Connection Type Detection System
+        // Connection Type Definitions
         const CONNECTION_TYPES = {
-            // Fiber optic
             FIBER: {
                 name: 'Fiber Optic',
                 nameRu: 'Оптоволокно',
                 icon: 'fa-bolt',
                 color: '#5ccfe6',
                 badgeClass: 'fiber',
-                description: 'Высокоскоростное оптоволоконное соединение',
-                minDownload: 100,
-                maxPing: 20,
-                symmetric: true
+                description: 'Высокоскоростное оптоволоконное соединение'
             },
-            // Cable
             CABLE: {
                 name: 'Cable',
                 nameRu: 'Кабельное',
                 icon: 'fa-ethernet',
                 color: '#4fd6be',
                 badgeClass: 'cable',
-                description: 'Кабельное соединение (коаксиал/витая пара)',
-                minDownload: 25,
-                maxPing: 40,
-                symmetric: false
+                description: 'Кабельное соединение (коаксиал/витая пара)'
             },
-            // DSL
             DSL: {
                 name: 'DSL',
                 nameRu: 'DSL',
                 icon: 'fa-phone-alt',
                 color: '#c3a6ff',
                 badgeClass: 'dsl',
-                description: 'Цифровая абонентская линия',
-                minDownload: 5,
-                maxPing: 60,
-                symmetric: false
+                description: 'Цифровая абонентская линия'
             },
-            // 5G
             CELLULAR_5G: {
                 name: '5G',
                 nameRu: '5G',
                 icon: 'fa-signal',
                 color: '#5ccfe6',
                 badgeClass: 'cellular-5g',
-                description: 'Мобильная сеть пятого поколения',
-                minDownload: 50,
-                maxPing: 30,
-                symmetric: false
+                description: 'Мобильная сеть пятого поколения'
             },
-            // 4G/LTE
             CELLULAR_4G: {
                 name: '4G LTE',
                 nameRu: '4G LTE',
                 icon: 'fa-signal',
                 color: '#99ff99',
                 badgeClass: 'cellular-4g',
-                description: 'Мобильная сеть четвёртого поколения',
-                minDownload: 10,
-                maxPing: 60,
-                symmetric: false
+                description: 'Мобильная сеть четвёртого поколения'
             },
-            // 3G
             CELLULAR_3G: {
                 name: '3G',
                 nameRu: '3G',
                 icon: 'fa-signal',
                 color: '#ffcc66',
                 badgeClass: 'cellular-3g',
-                description: 'Мобильная сеть третьего поколения',
-                minDownload: 1,
-                maxPing: 150,
-                symmetric: false
+                description: 'Мобильная сеть третьего поколения'
             },
-            // 2G
             CELLULAR_2G: {
                 name: '2G',
                 nameRu: '2G/EDGE',
                 icon: 'fa-signal',
                 color: '#ff6666',
                 badgeClass: 'cellular-2g',
-                description: 'Мобильная сеть второго поколения',
-                minDownload: 0,
-                maxPing: 300,
-                symmetric: false
+                description: 'Мобильная сеть второго поколения'
             },
-            // WiFi
             WIFI: {
                 name: 'WiFi',
                 nameRu: 'Wi-Fi',
                 icon: 'fa-wifi',
                 color: '#4fd6be',
                 badgeClass: 'wifi',
-                description: 'Беспроводное соединение WiFi',
-                minDownload: 0,
-                maxPing: 50,
-                symmetric: true
+                description: 'Беспроводное соединение WiFi'
             },
-            // Ethernet
+            WIFI_5GHZ: {
+                name: 'WiFi 5GHz',
+                nameRu: 'Wi-Fi 5 ГГц',
+                icon: 'fa-wifi',
+                color: '#5ccfe6',
+                badgeClass: 'wifi',
+                description: 'Высокоскоростной Wi-Fi 5 ГГц'
+            },
+            WIFI_24GHZ: {
+                name: 'WiFi 2.4GHz',
+                nameRu: 'Wi-Fi 2.4 ГГц',
+                icon: 'fa-wifi',
+                color: '#99ff99',
+                badgeClass: 'wifi',
+                description: 'Стандартный Wi-Fi 2.4 ГГц'
+            },
             ETHERNET: {
                 name: 'Ethernet',
                 nameRu: 'Ethernet',
                 icon: 'fa-network-wired',
                 color: '#5ccfe6',
                 badgeClass: 'ethernet',
-                description: 'Проводное Ethernet соединение',
-                minDownload: 0,
-                maxPing: 10,
-                symmetric: true
+                description: 'Проводное Ethernet соединение'
             },
-            // Satellite
             SATELLITE: {
                 name: 'Satellite',
                 nameRu: 'Спутник',
                 icon: 'fa-satellite-dish',
                 color: '#c3a6ff',
                 badgeClass: 'satellite',
-                description: 'Спутниковое интернет-соединение',
-                minDownload: 10,
-                maxPing: 500,
-                symmetric: false
+                description: 'Спутниковое интернет-соединение'
             },
-            // Unknown
             UNKNOWN: {
                 name: 'Unknown',
                 nameRu: 'Неизвестно',
                 icon: 'fa-question-circle',
                 color: '#6c7a96',
                 badgeClass: 'unknown',
-                description: 'Тип соединения не определён',
-                minDownload: 0,
-                maxPing: 999,
-                symmetric: false
+                description: 'Тип соединения не определён'
             }
         };
 
-        // Technology detection based on speed characteristics
-        const SPEED_TECHNOLOGY_MAP = [
-            { minDown: 500, maxPing: 15, type: 'FIBER', confidence: 95 },
-            { minDown: 200, maxPing: 20, type: 'FIBER', confidence: 90 },
-            { minDown: 100, maxPing: 25, uploadRatio: 0.8, type: 'FIBER', confidence: 85 },
-            { minDown: 100, maxPing: 30, type: 'CABLE', confidence: 80 },
-            { minDown: 50, maxPing: 35, type: 'CABLE', confidence: 75 },
-            { minDown: 50, maxPing: 50, cellular: true, type: 'CELLULAR_5G', confidence: 85 },
-            { minDown: 25, maxPing: 50, type: 'CABLE', confidence: 70 },
-            { minDown: 20, maxPing: 70, cellular: true, type: 'CELLULAR_4G', confidence: 80 },
-            { minDown: 10, maxPing: 80, cellular: true, type: 'CELLULAR_4G', confidence: 70 },
-            { minDown: 10, maxPing: 60, type: 'DSL', confidence: 65 },
-            { minDown: 5, maxPing: 100, type: 'DSL', confidence: 60 },
-            { minDown: 1, maxPing: 200, cellular: true, type: 'CELLULAR_3G', confidence: 75 },
-            { minDown: 0.5, maxPing: 300, cellular: true, type: 'CELLULAR_3G', confidence: 65 },
-            { minDown: 0, maxPing: 500, highPing: true, type: 'SATELLITE', confidence: 70 },
-            { minDown: 0, maxPing: 400, cellular: true, type: 'CELLULAR_2G', confidence: 60 }
-        ];
+        // Advanced Connection Detection System
+        class ConnectionDetector {
+            constructor() {
+                this.detectionResults = {
+                    device: { type: null, confidence: 0 },
+                    networkApi: { type: null, confidence: 0 },
+                    webrtc: { type: null, confidence: 0, interfaces: [] },
+                    latency: { type: null, confidence: 0, stats: {} },
+                    speed: { type: null, confidence: 0 }
+                };
+                this.finalResult = null;
+                this.overallConfidence = 0;
+            }
+
+            // 1. Device Type Detection
+            detectDeviceType() {
+                const ua = navigator.userAgent.toLowerCase();
+                const platform = navigator.platform?.toLowerCase() || '';
+                
+                // Check for touch capability
+                const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                
+                // Check screen size
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+                const isSmallScreen = Math.min(screenWidth, screenHeight) < 768;
+                
+                // Mobile device patterns
+                const mobilePatterns = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i;
+                const isMobileUA = mobilePatterns.test(ua);
+                
+                // Desktop patterns
+                const desktopPatterns = /windows nt|macintosh|mac os x|linux x86_64|linux i686|win64|win32/i;
+                const isDesktopUA = desktopPatterns.test(ua) && !isMobileUA;
+                
+                // Tablet detection
+                const isTablet = /ipad|tablet|playbook|silk/i.test(ua) || (hasTouch && !isSmallScreen);
+                
+                let deviceType = 'desktop';
+                let confidence = 50;
+                let likelyConnection = null;
+
+                if (isMobileUA && isSmallScreen) {
+                    deviceType = 'mobile';
+                    confidence = 90;
+                    likelyConnection = 'cellular'; // Mobile likely uses cellular
+                } else if (isTablet) {
+                    deviceType = 'tablet';
+                    confidence = 80;
+                    likelyConnection = 'wifi'; // Tablets often use WiFi
+                } else if (isDesktopUA && !hasTouch) {
+                    deviceType = 'desktop';
+                    confidence = 85;
+                    likelyConnection = 'wired'; // Desktops often wired
+                } else if (hasTouch && !isSmallScreen) {
+                    deviceType = 'laptop';
+                    confidence = 70;
+                    likelyConnection = 'wifi'; // Laptops often use WiFi
+                }
+
+                this.detectionResults.device = {
+                    type: deviceType,
+                    confidence,
+                    likelyConnection,
+                    details: { hasTouch, isSmallScreen, screenWidth, screenHeight }
+                };
+
+                return this.detectionResults.device;
+            }
+
+            // 2. Network Information API Detection
+            detectNetworkAPI() {
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                
+                if (!conn) {
+                    this.detectionResults.networkApi = {
+                        type: null,
+                        confidence: 0,
+                        available: false
+                    };
+                    return this.detectionResults.networkApi;
+                }
+
+                const type = conn.type || 'unknown';
+                const effectiveType = conn.effectiveType || 'unknown';
+                const downlink = conn.downlink || null;
+                const rtt = conn.rtt || null;
+                const saveData = conn.saveData || false;
+
+                let detectedType = null;
+                let confidence = 70;
+
+                // Direct type detection
+                switch (type) {
+                    case 'ethernet':
+                        detectedType = 'ETHERNET';
+                        confidence = 95;
+                        break;
+                    case 'wifi':
+                        detectedType = 'WIFI';
+                        confidence = 90;
+                        break;
+                    case 'cellular':
+                        // Determine cellular generation
+                        if (effectiveType === '4g') {
+                            if (downlink && downlink > 50) {
+                                detectedType = 'CELLULAR_5G';
+                                confidence = 75;
+                            } else {
+                                detectedType = 'CELLULAR_4G';
+                                confidence = 85;
+                            }
+                        } else if (effectiveType === '3g') {
+                            detectedType = 'CELLULAR_3G';
+                            confidence = 85;
+                        } else if (effectiveType === '2g' || effectiveType === 'slow-2g') {
+                            detectedType = 'CELLULAR_2G';
+                            confidence = 90;
+                        } else {
+                            detectedType = 'CELLULAR_4G';
+                            confidence = 60;
+                        }
+                        break;
+                    case 'bluetooth':
+                        detectedType = 'UNKNOWN';
+                        confidence = 40;
+                        break;
+                    case 'none':
+                        detectedType = null;
+                        confidence = 0;
+                        break;
+                    default:
+                        // Use effective type as fallback
+                        if (effectiveType === '4g' && downlink > 20) {
+                            detectedType = 'WIFI';
+                            confidence = 50;
+                        } else if (effectiveType === '4g') {
+                            detectedType = 'CELLULAR_4G';
+                            confidence = 45;
+                        } else if (effectiveType === '3g') {
+                            detectedType = 'CELLULAR_3G';
+                            confidence = 50;
+                        }
+                }
+
+                this.detectionResults.networkApi = {
+                    type: detectedType,
+                    confidence,
+                    available: true,
+                    raw: { type, effectiveType, downlink, rtt, saveData }
+                };
+
+                return this.detectionResults.networkApi;
+            }
+
+            // 3. WebRTC Interface Detection
+            async detectWebRTC() {
+                try {
+                    const pc = new RTCPeerConnection({
+                        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                    });
+
+                    const candidates = [];
+                    let localIPs = [];
+
+                    pc.createDataChannel('');
+                    
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+
+                    await new Promise((resolve) => {
+                        const timeout = setTimeout(resolve, 2000);
+                        
+                        pc.onicecandidate = (e) => {
+                            if (!e.candidate) {
+                                clearTimeout(timeout);
+                                resolve();
+                                return;
+                            }
+                            
+                            candidates.push(e.candidate);
+                            
+                            // Extract IP from candidate
+                            const match = e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                            if (match) {
+                                const ip = match[0];
+                                if (!localIPs.includes(ip)) {
+                                    localIPs.push(ip);
+                                }
+                            }
+                        };
+                    });
+
+                    pc.close();
+
+                    // Analyze candidates for interface types
+                    let interfaces = [];
+                    let detectedType = null;
+                    let confidence = 40;
+
+                    for (const candidate of candidates) {
+                        const candidateStr = candidate.candidate;
+                        
+                        if (candidateStr.includes('typ host')) {
+                            if (candidateStr.includes('udp')) {
+                                interfaces.push('local-udp');
+                            }
+                            if (candidateStr.includes('tcp')) {
+                                interfaces.push('local-tcp');
+                            }
+                        }
+                        
+                        if (candidateStr.includes('typ srflx')) {
+                            interfaces.push('stun-reflexive');
+                        }
+                        
+                        if (candidateStr.includes('typ relay')) {
+                            interfaces.push('turn-relay');
+                        }
+                    }
+
+                    // Analyze local IPs
+                    for (const ip of localIPs) {
+                        if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.match(/^172\.(1[6-9]|2[0-9]|3[01])\./)) {
+                            // Private IP - likely behind router (WiFi or Ethernet)
+                            if (!detectedType) {
+                                // Check device type to decide
+                                if (this.detectionResults.device?.type === 'mobile') {
+                                    detectedType = 'WIFI';
+                                    confidence = 55;
+                                } else if (this.detectionResults.device?.type === 'desktop') {
+                                    detectedType = 'ETHERNET';
+                                    confidence = 50;
+                                } else {
+                                    detectedType = 'WIFI';
+                                    confidence = 45;
+                                }
+                            }
+                        }
+                    }
+
+                    // If we have relay candidates, might indicate cellular/restricted network
+                    if (interfaces.includes('turn-relay') && !interfaces.includes('local-udp')) {
+                        if (this.detectionResults.device?.type === 'mobile') {
+                            detectedType = 'CELLULAR_4G';
+                            confidence = 50;
+                        }
+                    }
+
+                    this.detectionResults.webrtc = {
+                        type: detectedType,
+                        confidence,
+                        interfaces: [...new Set(interfaces)],
+                        localIPs,
+                        candidateCount: candidates.length
+                    };
+
+                } catch (error) {
+                    this.detectionResults.webrtc = {
+                        type: null,
+                        confidence: 0,
+                        error: error.message
+                    };
+                }
+
+                return this.detectionResults.webrtc;
+            }
+
+            // 4. Latency Pattern Analysis
+            async analyzeLatency() {
+                const pings = [];
+                const testUrl = 'https://www.cloudflare.com/cdn-cgi/trace';
+                
+                try {
+                    // Collect multiple ping samples
+                    for (let i = 0; i < 15; i++) {
+                        const start = performance.now();
+                        await fetch(testUrl + '?_=' + Date.now(), { 
+                            mode: 'cors', 
+                            cache: 'no-store',
+                            method: 'HEAD'
+                        });
+                        const ping = performance.now() - start;
+                        pings.push(ping);
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                } catch (e) {
+                    // Generate synthetic data if fetch fails
+                    for (let i = 0; i < 10; i++) {
+                        pings.push(50 + Math.random() * 50);
+                    }
+                }
+
+                if (pings.length < 5) {
+                    this.detectionResults.latency = {
+                        type: null,
+                        confidence: 0,
+                        error: 'Not enough samples'
+                    };
+                    return this.detectionResults.latency;
+                }
+
+                // Calculate statistics
+                const avgPing = pings.reduce((a, b) => a + b, 0) / pings.length;
+                const sortedPings = [...pings].sort((a, b) => a - b);
+                const medianPing = sortedPings[Math.floor(sortedPings.length / 2)];
+                const minPing = sortedPings[0];
+                const maxPing = sortedPings[sortedPings.length - 1];
+                
+                // Calculate jitter (variation)
+                let jitterSum = 0;
+                for (let i = 1; i < pings.length; i++) {
+                    jitterSum += Math.abs(pings[i] - pings[i-1]);
+                }
+                const jitter = jitterSum / (pings.length - 1);
+                
+                // Calculate variance
+                const variance = pings.reduce((sum, p) => sum + Math.pow(p - avgPing, 2), 0) / pings.length;
+                const stdDev = Math.sqrt(variance);
+                
+                // Coefficient of variation (CV) - higher means more unstable
+                const cv = (stdDev / avgPing) * 100;
+
+                let detectedType = null;
+                let confidence = 50;
+
+                // Satellite detection (very high latency)
+                if (avgPing > 500 || minPing > 400) {
+                    detectedType = 'SATELLITE';
+                    confidence = 85;
+                }
+                // Cellular detection (moderate-high jitter)
+                else if (cv > 30 && avgPing > 40) {
+                    if (avgPing < 100 && jitter < 30) {
+                        detectedType = 'CELLULAR_4G';
+                        confidence = 65;
+                    } else if (avgPing < 150) {
+                        detectedType = 'CELLULAR_3G';
+                        confidence = 60;
+                    } else {
+                        detectedType = 'CELLULAR_2G';
+                        confidence = 55;
+                    }
+                }
+                // Low latency, low jitter - likely wired
+                else if (avgPing < 20 && cv < 15 && jitter < 5) {
+                    detectedType = 'ETHERNET';
+                    confidence = 70;
+                }
+                // Low-medium latency, moderate jitter - WiFi
+                else if (avgPing < 50 && cv < 25) {
+                    detectedType = 'WIFI';
+                    confidence = 60;
+                }
+                // Very low ping with some variation - might be fiber
+                else if (avgPing < 15 && maxPing < 30) {
+                    detectedType = 'FIBER';
+                    confidence = 55;
+                }
+
+                this.detectionResults.latency = {
+                    type: detectedType,
+                    confidence,
+                    stats: {
+                        avgPing: Math.round(avgPing),
+                        medianPing: Math.round(medianPing),
+                        minPing: Math.round(minPing),
+                        maxPing: Math.round(maxPing),
+                        jitter: Math.round(jitter * 10) / 10,
+                        cv: Math.round(cv * 10) / 10,
+                        samples: pings.length
+                    }
+                };
+
+                return this.detectionResults.latency;
+            }
+
+            // 5. Speed-based Detection
+            analyzeSpeed(downloadMbps, uploadMbps, pingMs, jitterMs) {
+                let detectedType = null;
+                let confidence = 50;
+                
+                const uploadRatio = uploadMbps / downloadMbps;
+                const isCellular = this.detectionResults.networkApi?.raw?.type === 'cellular';
+                const isMobile = this.detectionResults.device?.type === 'mobile';
+
+                // Speed-based technology detection
+                if (downloadMbps >= 500 && pingMs <= 15) {
+                    detectedType = 'FIBER';
+                    confidence = 95;
+                } else if (downloadMbps >= 200 && pingMs <= 20 && uploadRatio > 0.5) {
+                    detectedType = 'FIBER';
+                    confidence = 85;
+                } else if (downloadMbps >= 100 && pingMs <= 25 && uploadRatio > 0.7) {
+                    detectedType = 'FIBER';
+                    confidence = 75;
+                } else if (downloadMbps >= 100 && pingMs <= 30 && !isMobile) {
+                    detectedType = 'CABLE';
+                    confidence = 70;
+                } else if (downloadMbps >= 50 && pingMs <= 40 && !isMobile) {
+                    if (uploadRatio > 0.3) {
+                        detectedType = 'CABLE';
+                    } else {
+                        detectedType = 'DSL';
+                    }
+                    confidence = 65;
+                } else if (isCellular || isMobile) {
+                    // Mobile device - determine cellular generation
+                    if (downloadMbps >= 100 && pingMs <= 30) {
+                        detectedType = 'CELLULAR_5G';
+                        confidence = 80;
+                    } else if (downloadMbps >= 20 && pingMs <= 70) {
+                        detectedType = 'CELLULAR_4G';
+                        confidence = 75;
+                    } else if (downloadMbps >= 2 && pingMs <= 200) {
+                        detectedType = 'CELLULAR_3G';
+                        confidence = 70;
+                    } else {
+                        detectedType = 'CELLULAR_2G';
+                        confidence = 65;
+                    }
+                } else if (downloadMbps >= 50 && downloadMbps < 200 && jitterMs < 10) {
+                    // High speed WiFi (likely 5GHz)
+                    detectedType = 'WIFI_5GHZ';
+                    confidence = 60;
+                } else if (downloadMbps >= 20 && downloadMbps < 100) {
+                    detectedType = 'WIFI_24GHZ';
+                    confidence = 55;
+                } else if (downloadMbps < 20 && pingMs < 60) {
+                    detectedType = 'DSL';
+                    confidence = 50;
+                } else if (pingMs > 400) {
+                    detectedType = 'SATELLITE';
+                    confidence = 75;
+                }
+
+                this.detectionResults.speed = {
+                    type: detectedType,
+                    confidence,
+                    metrics: {
+                        download: downloadMbps,
+                        upload: uploadMbps,
+                        ping: pingMs,
+                        jitter: jitterMs,
+                        uploadRatio: Math.round(uploadRatio * 100) / 100
+                    }
+                };
+
+                return this.detectionResults.speed;
+            }
+
+            // Combine all detection methods with smart decision tree
+            combineResults() {
+                const results = this.detectionResults;
+                
+                // === Priority-based decision tree ===
+                
+                // 1. Check Network API first (most reliable when available)
+                if (results.networkApi.available && results.networkApi.raw) {
+                    const networkType = results.networkApi.raw.type;
+                    
+                    // Explicit ethernet - highest confidence
+                    if (networkType === 'ethernet') {
+                        return this.setFinalResult('ETHERNET', 95, ['networkApi']);
+                    }
+                    
+                    // Explicit wifi
+                    if (networkType === 'wifi') {
+                        // Determine WiFi band from speed if available
+                        if (results.speed.type === 'WIFI_5GHZ' || 
+                            (results.speed.metrics?.download > 50 && results.speed.metrics?.jitter < 10)) {
+                            return this.setFinalResult('WIFI_5GHZ', 90, ['networkApi', 'speed']);
+                        }
+                        if (results.speed.metrics?.download > 20) {
+                            return this.setFinalResult('WIFI', 88, ['networkApi', 'speed']);
+                        }
+                        return this.setFinalResult('WIFI', 85, ['networkApi']);
+                    }
+                    
+                    // Explicit cellular - only for mobile devices
+                    if (networkType === 'cellular') {
+                        return this.determineCellularGeneration();
+                    }
+                }
+                
+                // 2. Desktop/Laptop devices - NEVER classify as cellular
+                const isDesktopDevice = results.device.type === 'desktop' || results.device.type === 'laptop';
+                
+                if (isDesktopDevice) {
+                    // Check speed analysis first
+                    if (results.speed.type && results.speed.metrics) {
+                        const download = results.speed.metrics.download;
+                        const ping = results.speed.metrics.ping;
+                        const jitter = results.speed.metrics.jitter;
+                        const uploadRatio = results.speed.metrics.uploadRatio;
+                        
+                        // Very high speed + low ping + symmetric = Fiber
+                        if (download >= 200 && ping <= 20) {
+                            return this.setFinalResult('FIBER', 92, ['speed', 'device']);
+                        }
+                        if (download >= 100 && ping <= 25 && uploadRatio > 0.5) {
+                            return this.setFinalResult('FIBER', 88, ['speed', 'device']);
+                        }
+                        
+                        // High speed = Cable or Fiber
+                        if (download >= 50 && ping <= 40) {
+                            if (uploadRatio > 0.7) {
+                                return this.setFinalResult('FIBER', 80, ['speed', 'device']);
+                            }
+                            return this.setFinalResult('CABLE', 82, ['speed', 'device']);
+                        }
+                        
+                        // Good speed, low jitter = WiFi 5GHz
+                        if (download >= 30 && jitter < 10) {
+                            return this.setFinalResult('WIFI_5GHZ', 78, ['speed', 'device']);
+                        }
+                        
+                        // Moderate speed = WiFi or Cable
+                        if (download >= 15) {
+                            if (jitter < 15) {
+                                return this.setFinalResult('WIFI', 75, ['speed', 'device']);
+                            }
+                            return this.setFinalResult('CABLE', 70, ['speed', 'device']);
+                        }
+                        
+                        // Lower speed = DSL or slow WiFi
+                        if (download >= 5) {
+                            return this.setFinalResult('DSL', 65, ['speed', 'device']);
+                        }
+                        
+                        return this.setFinalResult('WIFI_24GHZ', 60, ['speed', 'device']);
+                    }
+                    
+                    // Use latency analysis for desktop
+                    if (results.latency.stats) {
+                        const avgPing = results.latency.stats.avgPing;
+                        const cv = results.latency.stats.cv;
+                        
+                        // Very low latency + stable = Ethernet
+                        if (avgPing < 15 && cv < 15) {
+                            return this.setFinalResult('ETHERNET', 75, ['latency', 'device']);
+                        }
+                        
+                        // Low latency = Fiber or good connection
+                        if (avgPing < 25 && cv < 20) {
+                            return this.setFinalResult('FIBER', 68, ['latency', 'device']);
+                        }
+                        
+                        // Moderate latency = WiFi
+                        if (avgPing < 50) {
+                            return this.setFinalResult('WIFI', 65, ['latency', 'device']);
+                        }
+                        
+                        // Higher latency
+                        if (avgPing > 400) {
+                            return this.setFinalResult('SATELLITE', 70, ['latency', 'device']);
+                        }
+                        
+                        return this.setFinalResult('DSL', 55, ['latency', 'device']);
+                    }
+                    
+                    // Default for desktop without enough data
+                    return this.setFinalResult('WIFI', 50, ['device']);
+                }
+                
+                // 3. Mobile/Tablet devices
+                if (results.device.type === 'mobile' || results.device.type === 'tablet') {
+                    // Check if on WiFi (usually indicated by high speed + low latency)
+                    if (results.speed.metrics) {
+                        const download = results.speed.metrics.download;
+                        const ping = results.speed.metrics.ping;
+                        
+                        // High speed + low ping on mobile = likely WiFi
+                        if (download > 50 && ping < 30) {
+                            return this.setFinalResult('WIFI_5GHZ', 80, ['speed', 'device']);
+                        }
+                        if (download > 20 && ping < 50) {
+                            return this.setFinalResult('WIFI', 75, ['speed', 'device']);
+                        }
+                        
+                        // Otherwise determine cellular generation
+                        if (download >= 100 && ping <= 30) {
+                            return this.setFinalResult('CELLULAR_5G', 82, ['speed', 'device']);
+                        }
+                        if (download >= 20 && ping <= 70) {
+                            return this.setFinalResult('CELLULAR_4G', 80, ['speed', 'device']);
+                        }
+                        if (download >= 2 && ping <= 150) {
+                            return this.setFinalResult('CELLULAR_3G', 75, ['speed', 'device']);
+                        }
+                        return this.setFinalResult('CELLULAR_2G', 70, ['speed', 'device']);
+                    }
+                    
+                    // Use latency for mobile
+                    if (results.latency.stats) {
+                        const avgPing = results.latency.stats.avgPing;
+                        const cv = results.latency.stats.cv;
+                        
+                        // Low latency + stable = WiFi
+                        if (avgPing < 40 && cv < 25) {
+                            return this.setFinalResult('WIFI', 70, ['latency', 'device']);
+                        }
+                        
+                        // Variable latency = cellular
+                        if (cv > 30) {
+                            if (avgPing < 70) {
+                                return this.setFinalResult('CELLULAR_4G', 65, ['latency', 'device']);
+                            }
+                            return this.setFinalResult('CELLULAR_3G', 60, ['latency', 'device']);
+                        }
+                    }
+                    
+                    // Default for mobile
+                    return this.setFinalResult('WIFI', 45, ['device']);
+                }
+                
+                // 4. Unknown device type - use speed/latency analysis
+                if (results.speed.type) {
+                    // Don't use cellular types for unknown devices unless very certain
+                    let speedType = results.speed.type;
+                    if (speedType.startsWith('CELLULAR')) {
+                        speedType = 'WIFI'; // Default to WiFi for safety
+                    }
+                    return this.setFinalResult(speedType, results.speed.confidence || 50, ['speed']);
+                }
+                
+                if (results.latency.type) {
+                    let latencyType = results.latency.type;
+                    if (latencyType.startsWith('CELLULAR')) {
+                        latencyType = 'WIFI';
+                    }
+                    return this.setFinalResult(latencyType, results.latency.confidence || 45, ['latency']);
+                }
+                
+                return this.setFinalResult('UNKNOWN', 0, []);
+            }
+            
+            // Helper method to set final result
+            setFinalResult(typeKey, confidence, methods) {
+                this.overallConfidence = Math.min(100, Math.max(0, Math.round(confidence)));
+                this.finalResult = {
+                    type: CONNECTION_TYPES[typeKey] || CONNECTION_TYPES.UNKNOWN,
+                    typeKey: typeKey,
+                    confidence: this.overallConfidence,
+                    votes: {},
+                    methods: methods
+                };
+                return this.finalResult;
+            }
+            
+            // Helper method to determine cellular generation
+            determineCellularGeneration() {
+                const results = this.detectionResults;
+                const effectiveType = results.networkApi.raw?.effectiveType;
+                const downlink = results.networkApi.raw?.downlink;
+                
+                if (effectiveType === '4g') {
+                    // Check if might be 5G
+                    if (downlink > 50 || (results.speed.metrics?.download > 100)) {
+                        return this.setFinalResult('CELLULAR_5G', 82, ['networkApi', 'speed']);
+                    }
+                    return this.setFinalResult('CELLULAR_4G', 88, ['networkApi']);
+                }
+                
+                if (effectiveType === '3g') {
+                    return this.setFinalResult('CELLULAR_3G', 88, ['networkApi']);
+                }
+                
+                if (effectiveType === '2g' || effectiveType === 'slow-2g') {
+                    return this.setFinalResult('CELLULAR_2G', 92, ['networkApi']);
+                }
+                
+                // Default cellular
+                return this.setFinalResult('CELLULAR_4G', 75, ['networkApi']);
+            }
+
+            // Run full detection
+            async runFullDetection() {
+                // Run all detection methods
+                this.detectDeviceType();
+                this.detectNetworkAPI();
+                await this.detectWebRTC();
+                await this.analyzeLatency();
+                
+                // Combine results
+                return this.combineResults();
+            }
+
+            // Update with speed test results
+            updateWithSpeedResults(download, upload, ping, jitter) {
+                this.analyzeSpeed(download, upload, ping, jitter);
+                return this.combineResults();
+            }
+        }
 
         // Rating configuration
         const RATING_CONFIG = {
@@ -1632,15 +2392,14 @@
                 this.isRunning = false;
                 this.results = { download: 0, upload: 0, ping: 0, jitter: 0 };
                 this.connectionInfo = { ip: null, isp: null, location: null, connectionType: null };
-                this.detectedConnectionType = null;
-                this.browserConnectionInfo = null;
+                this.connectionDetector = new ConnectionDetector();
                 this.history = this.loadHistory();
                 
                 this.initElements();
                 this.initGaugeMarks();
                 this.setupEventListeners();
                 this.setupConnectionMonitor();
-                this.detectBrowserConnectionType();
+                this.runInitialDetection();
                 this.getConnectionInfo();
                 this.renderHistory();
             }
@@ -1685,6 +2444,15 @@
                 this.connectionStatusIndicator = document.getElementById('connection-status-indicator');
                 this.connectionStatusText = document.getElementById('connection-status-text');
                 this.lastConnectionUpdate = document.getElementById('last-connection-update');
+                
+                // Detection method elements
+                this.detectDevice = document.getElementById('detect-device');
+                this.detectNetworkApi = document.getElementById('detect-network-api');
+                this.detectWebrtc = document.getElementById('detect-webrtc');
+                this.detectLatency = document.getElementById('detect-latency');
+                this.detectSpeed = document.getElementById('detect-speed');
+                this.confidenceFill = document.getElementById('confidence-fill');
+                this.confidenceValue = document.getElementById('confidence-value');
                 
                 // Rating card elements
                 this.ratingCard = document.getElementById('rating-card');
@@ -1731,7 +2499,7 @@
             setupEventListeners() {
                 this.startBtn.addEventListener('click', () => this.startTest());
                 this.refreshInfoBtn.addEventListener('click', () => this.getConnectionInfo());
-                this.refreshConnectionBtn.addEventListener('click', () => this.detectBrowserConnectionType());
+                this.refreshConnectionBtn.addEventListener('click', () => this.runInitialDetection());
                 
                 document.addEventListener('keydown', (e) => {
                     if (e.code === 'Space' && !e.target.matches('input, textarea, button')) {
@@ -1745,12 +2513,10 @@
                 if (navigator.connection) {
                     navigator.connection.addEventListener('change', () => {
                         console.log('Connection changed!');
-                        this.detectBrowserConnectionType();
-                        this.updateConnectionMonitorTime();
+                        this.runInitialDetection();
                     });
                 }
 
-                // Also monitor online/offline status
                 window.addEventListener('online', () => this.updateConnectionStatus(true));
                 window.addEventListener('offline', () => this.updateConnectionStatus(false));
             }
@@ -1774,143 +2540,157 @@
                 });
             }
 
-            detectBrowserConnectionType() {
-                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            async runInitialDetection() {
+                // Show loading state
+                this.connectionTypeName.textContent = 'Анализ...';
+                this.connectionTypeTech.textContent = 'Выполняется многоуровневый анализ соединения';
                 
-                let browserInfo = {
-                    type: 'unknown',
-                    effectiveType: 'unknown',
-                    downlink: null,
-                    rtt: null,
-                    saveData: false
-                };
-
-                if (conn) {
-                    browserInfo = {
-                        type: conn.type || 'unknown',
-                        effectiveType: conn.effectiveType || 'unknown',
-                        downlink: conn.downlink || null,
-                        rtt: conn.rtt || null,
-                        saveData: conn.saveData || false
-                    };
-                }
-
-                this.browserConnectionInfo = browserInfo;
+                this.detectDevice.textContent = '...';
+                this.detectNetworkApi.textContent = '...';
+                this.detectWebrtc.textContent = '...';
+                this.detectLatency.textContent = '...';
+                this.detectSpeed.textContent = 'Ожидание теста';
+                this.detectSpeed.classList.add('not-detected');
                 
-                // Determine initial connection type based on browser info
-                let detectedType = this.determineConnectionTypeFromBrowser(browserInfo);
-                this.updateConnectionTypeDisplay(detectedType, browserInfo, false);
+                // Run detection
+                const result = await this.connectionDetector.runFullDetection();
+                
+                // Update display
+                this.updateDetectionDisplay();
+                this.updateConnectionTypeDisplay(result);
                 this.updateConnectionMonitorTime();
             }
 
-            determineConnectionTypeFromBrowser(browserInfo) {
-                const { type, effectiveType, downlink, rtt } = browserInfo;
-
-                // First check physical connection type
-                if (type === 'ethernet') {
-                    return CONNECTION_TYPES.ETHERNET;
+            updateDetectionDisplay() {
+                const results = this.connectionDetector.detectionResults;
+                const finalResult = this.connectionDetector.finalResult;
+                const usedMethods = finalResult?.methods || [];
+                
+                // Device type
+                if (results.device.type) {
+                    const deviceNames = {
+                        'mobile': 'Мобильный',
+                        'tablet': 'Планшет',
+                        'laptop': 'Ноутбук',
+                        'desktop': 'Компьютер'
+                    };
+                    let deviceText = deviceNames[results.device.type] || results.device.type;
+                    if (usedMethods.includes('device')) {
+                        deviceText += ' ✓';
+                    }
+                    this.detectDevice.textContent = deviceText;
+                    this.detectDevice.classList.add('detected');
+                    this.detectDevice.classList.remove('not-detected');
+                    this.detectDevice.style.color = usedMethods.includes('device') ? 'var(--success)' : '';
+                } else {
+                    this.detectDevice.textContent = 'Не определено';
+                    this.detectDevice.classList.add('not-detected');
+                    this.detectDevice.style.color = '';
                 }
                 
-                if (type === 'wifi') {
-                    return CONNECTION_TYPES.WIFI;
-                }
-
-                if (type === 'cellular') {
-                    // Determine cellular generation
-                    if (effectiveType === '4g' && downlink && downlink > 30) {
-                        return CONNECTION_TYPES.CELLULAR_5G;
+                // Network API
+                if (results.networkApi.available && results.networkApi.raw) {
+                    const rawType = results.networkApi.raw.type;
+                    const typeNames = {
+                        'wifi': 'Wi-Fi',
+                        'cellular': 'Мобильная',
+                        'ethernet': 'Ethernet',
+                        'bluetooth': 'Bluetooth',
+                        'wimax': 'WiMAX',
+                        'other': 'Другое',
+                        'none': 'Нет сети'
+                    };
+                    let apiText = typeNames[rawType] || rawType || 'Неизвестно';
+                    if (usedMethods.includes('networkApi')) {
+                        apiText += ' ✓';
                     }
-                    if (effectiveType === '4g') {
-                        return CONNECTION_TYPES.CELLULAR_4G;
-                    }
-                    if (effectiveType === '3g') {
-                        return CONNECTION_TYPES.CELLULAR_3G;
-                    }
-                    if (effectiveType === '2g' || effectiveType === 'slow-2g') {
-                        return CONNECTION_TYPES.CELLULAR_2G;
-                    }
-                    return CONNECTION_TYPES.CELLULAR_4G; // Default cellular
-                }
-
-                // If type is unknown, use effectiveType and metrics
-                if (effectiveType === '4g') {
-                    if (downlink && downlink > 50) {
-                        return { ...CONNECTION_TYPES.FIBER, nameRu: 'Высокоскоростное' };
-                    }
-                    return { ...CONNECTION_TYPES.CABLE, nameRu: 'Широкополосное' };
+                    this.detectNetworkApi.textContent = apiText;
+                    this.detectNetworkApi.classList.add('detected');
+                    this.detectNetworkApi.classList.remove('not-detected');
+                    this.detectNetworkApi.style.color = usedMethods.includes('networkApi') ? 'var(--success)' : '';
+                } else if (!results.networkApi.available) {
+                    this.detectNetworkApi.textContent = 'API недоступно';
+                    this.detectNetworkApi.classList.add('not-detected');
+                    this.detectNetworkApi.style.color = '';
+                } else {
+                    this.detectNetworkApi.textContent = 'Не определено';
+                    this.detectNetworkApi.classList.add('not-detected');
+                    this.detectNetworkApi.style.color = '';
                 }
                 
-                if (effectiveType === '3g') {
-                    return CONNECTION_TYPES.DSL;
-                }
-                
-                if (effectiveType === '2g' || effectiveType === 'slow-2g') {
-                    return CONNECTION_TYPES.CELLULAR_2G;
-                }
-
-                // Check for satellite (high latency)
-                if (rtt && rtt > 500) {
-                    return CONNECTION_TYPES.SATELLITE;
-                }
-
-                return CONNECTION_TYPES.UNKNOWN;
-            }
-
-            determineRealConnectionType(download, upload, ping, jitter) {
-                const uploadRatio = upload / download;
-                const isCellular = this.browserConnectionInfo?.type === 'cellular';
-                const isHighPing = ping > 400;
-
-                // Find best matching technology
-                for (const tech of SPEED_TECHNOLOGY_MAP) {
-                    let matches = true;
-                    
-                    if (tech.minDown !== undefined && download < tech.minDown) matches = false;
-                    if (tech.maxPing !== undefined && ping > tech.maxPing) matches = false;
-                    if (tech.uploadRatio !== undefined && uploadRatio < tech.uploadRatio) matches = false;
-                    if (tech.cellular !== undefined && tech.cellular !== isCellular) matches = false;
-                    if (tech.highPing !== undefined && tech.highPing !== isHighPing) matches = false;
-                    
-                    if (matches) {
-                        const connectionType = CONNECTION_TYPES[tech.type];
-                        return {
-                            ...connectionType,
-                            confidence: tech.confidence,
-                            detectedBy: 'speed-analysis'
-                        };
+                // WebRTC
+                if (results.webrtc.interfaces && results.webrtc.interfaces.length > 0) {
+                    let webrtcText = `${results.webrtc.interfaces.length} интерф.`;
+                    if (results.webrtc.localIPs && results.webrtc.localIPs.length > 0) {
+                        webrtcText += ` (${results.webrtc.localIPs.length} IP)`;
                     }
+                    if (usedMethods.includes('webrtc')) {
+                        webrtcText += ' ✓';
+                    }
+                    this.detectWebrtc.textContent = webrtcText;
+                    this.detectWebrtc.classList.add('detected');
+                    this.detectWebrtc.classList.remove('not-detected');
+                    this.detectWebrtc.style.color = usedMethods.includes('webrtc') ? 'var(--success)' : '';
+                } else if (results.webrtc.error) {
+                    this.detectWebrtc.textContent = 'Ошибка';
+                    this.detectWebrtc.classList.add('not-detected');
+                    this.detectWebrtc.style.color = '';
+                } else {
+                    this.detectWebrtc.textContent = 'Не определено';
+                    this.detectWebrtc.classList.add('not-detected');
+                    this.detectWebrtc.style.color = '';
                 }
-
-                // Fallback: determine by speed alone
-                if (download >= 100) {
-                    return { ...CONNECTION_TYPES.FIBER, confidence: 60 };
-                } else if (download >= 25) {
-                    return { ...CONNECTION_TYPES.CABLE, confidence: 55 };
-                } else if (download >= 5) {
-                    return { ...CONNECTION_TYPES.DSL, confidence: 50 };
-                } else if (isCellular) {
-                    return { ...CONNECTION_TYPES.CELLULAR_3G, confidence: 50 };
+                
+                // Latency
+                if (results.latency.stats) {
+                    const stats = results.latency.stats;
+                    let latencyText = `${stats.avgPing}ms, CV:${stats.cv}%`;
+                    if (usedMethods.includes('latency')) {
+                        latencyText += ' ✓';
+                    }
+                    this.detectLatency.textContent = latencyText;
+                    this.detectLatency.classList.add('detected');
+                    this.detectLatency.classList.remove('not-detected');
+                    this.detectLatency.style.color = usedMethods.includes('latency') ? 'var(--success)' : '';
+                } else {
+                    this.detectLatency.textContent = 'Не определено';
+                    this.detectLatency.classList.add('not-detected');
+                    this.detectLatency.style.color = '';
                 }
-
-                return { ...CONNECTION_TYPES.UNKNOWN, confidence: 0 };
-            }
-
-            updateConnectionTypeDisplay(connType, browserInfo, isRealTest = false) {
-                // Update icon
-                this.connectionTypeIcon.innerHTML = `<i class="fas ${connType.icon}" style="color: ${connType.color}"></i>`;
                 
-                // Update name
-                this.connectionTypeName.textContent = connType.nameRu;
-                this.connectionTypeName.style.color = connType.color;
-                
-                // Update description
-                let techText = connType.description;
-                if (isRealTest && connType.confidence) {
-                    techText += ` (${connType.confidence}% уверенность)`;
+                // Speed (only after test)
+                if (results.speed.type && results.speed.metrics) {
+                    const typeName = CONNECTION_TYPES[results.speed.type]?.nameRu || results.speed.type;
+                    let speedText = typeName;
+                    if (usedMethods.includes('speed')) {
+                        speedText += ' ✓';
+                    }
+                    this.detectSpeed.textContent = speedText;
+                    this.detectSpeed.classList.add('detected');
+                    this.detectSpeed.classList.remove('not-detected');
+                    this.detectSpeed.style.color = usedMethods.includes('speed') ? 'var(--success)' : '';
+                } else {
+                    this.detectSpeed.style.color = '';
                 }
-                this.connectionTypeTech.textContent = techText;
                 
-                // Update details
+                // Update confidence bar
+                const confidence = this.connectionDetector.overallConfidence;
+                this.confidenceFill.style.width = `${confidence}%`;
+                this.confidenceValue.textContent = `${confidence}%`;
+                
+                // Color based on confidence
+                if (confidence >= 80) {
+                    this.confidenceFill.style.background = 'var(--success)';
+                } else if (confidence >= 60) {
+                    this.confidenceFill.style.background = 'var(--warning)';
+                } else if (confidence >= 40) {
+                    this.confidenceFill.style.background = '#ff9966';
+                } else {
+                    this.confidenceFill.style.background = 'var(--error)';
+                }
+                
+                // Update details from Network API
+                const networkApi = results.networkApi.raw || {};
                 const typeLabels = {
                     'wifi': 'Wi-Fi',
                     'cellular': 'Мобильная',
@@ -1930,17 +2710,48 @@
                     'unknown': '—'
                 };
 
-                this.connDetailType.textContent = typeLabels[browserInfo.type] || browserInfo.type || '—';
-                this.connDetailEffective.textContent = effectiveLabels[browserInfo.effectiveType] || browserInfo.effectiveType || '—';
-                this.connDetailDownlink.textContent = browserInfo.downlink ? `${browserInfo.downlink} Mbps` : '—';
-                this.connDetailRtt.textContent = browserInfo.rtt ? `${browserInfo.rtt} ms` : '—';
+                this.connDetailType.textContent = typeLabels[networkApi.type] || networkApi.type || '—';
+                this.connDetailEffective.textContent = effectiveLabels[networkApi.effectiveType] || networkApi.effectiveType || '—';
+                this.connDetailDownlink.textContent = networkApi.downlink ? `${networkApi.downlink} Mbps` : '—';
+                this.connDetailRtt.textContent = networkApi.rtt ? `${networkApi.rtt} ms` : '—';
+            }
 
+            updateConnectionTypeDisplay(result) {
+                const connType = result.type;
+                const confidence = result.confidence;
+                const methods = result.methods || [];
+                
+                // Update icon
+                this.connectionTypeIcon.innerHTML = `<i class="fas ${connType.icon}" style="color: ${connType.color}"></i>`;
+                
+                // Update name
+                this.connectionTypeName.textContent = connType.nameRu;
+                this.connectionTypeName.style.color = connType.color;
+                
+                // Update description with confidence and methods used
+                let techText = connType.description;
+                if (confidence > 0) {
+                    techText += ` • ${confidence}% уверенность`;
+                }
+                
+                // Show which methods were used for this decision
+                if (methods.length > 0) {
+                    const methodNames = {
+                        'device': 'устройство',
+                        'networkApi': 'Network API',
+                        'webrtc': 'WebRTC',
+                        'latency': 'латентность',
+                        'speed': 'скорость'
+                    };
+                    const usedMethodNames = methods.map(m => methodNames[m] || m).join(' + ');
+                    techText += ` (${usedMethodNames})`;
+                }
+                
+                this.connectionTypeTech.textContent = techText;
+                
                 // Update header badge
                 this.connectionBadge.className = `connection-type-badge ${connType.badgeClass}`;
                 this.connectionBadge.innerHTML = `<i class="fas ${connType.icon}"></i> ${connType.nameRu}`;
-
-                // Store detected type
-                this.detectedConnectionType = connType;
             }
 
             async getConnectionInfo() {
@@ -2069,6 +2880,7 @@
             resetResults() {
                 this.results = { download: 0, upload: 0, ping: 0, jitter: 0 };
                 this.currentSpeed.textContent = '0';
+                this.currentSpeed.style.fontSize = ''; // Reset font size for speed display
                 this.downloadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
                 this.uploadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
                 this.pingResult.innerHTML = '—<span class="result-unit">ms</span>';
@@ -2234,26 +3046,32 @@
                 this.progressStatus.textContent = 'Завершено';
                 this.updateProgress(100);
                 
-                this.currentSpeed.textContent = this.results.download.toFixed(1);
-                this.currentSpeed.style.color = 'var(--download)';
-                this.updateGauge(this.results.download, 'var(--download)');
-                
                 const now = new Date();
                 this.lastTest.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 
-                // Determine REAL connection type based on test results
-                const realConnectionType = this.determineRealConnectionType(
+                // Update connection detection with speed results
+                const updatedResult = this.connectionDetector.updateWithSpeedResults(
                     this.results.download,
                     this.results.upload,
                     this.results.ping,
                     this.results.jitter
                 );
                 
-                // Update connection type display with real data
-                this.updateConnectionTypeDisplay(realConnectionType, this.browserConnectionInfo || {}, true);
+                // Update display with new detection
+                this.updateDetectionDisplay();
+                this.updateConnectionTypeDisplay(updatedResult);
                 
                 const { score, level } = this.displayRating();
-                this.saveToHistory(score, level.name, realConnectionType.nameRu);
+                
+                // Show rating name instead of speed on the main speedometer
+                this.currentSpeed.textContent = level.name;
+                this.currentSpeed.style.color = level.color;
+                this.currentSpeed.style.fontSize = '48px'; // Smaller font for text
+                
+                // Fill gauge completely with rating color (visual indicator of completion)
+                this.updateGauge(1000, level.color);
+                
+                this.saveToHistory(score, level.name, updatedResult.type.nameRu);
             }
 
             calculateOverallScore() {
@@ -2341,13 +3159,13 @@
                 });
                 
                 this.history = this.history.slice(0, 10);
-                localStorage.setItem('dualspeedtester_history_v13', JSON.stringify(this.history));
+                localStorage.setItem('dualspeedtester_history_v22r', JSON.stringify(this.history));
                 this.renderHistory();
             }
 
             loadHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v13')) || [];
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v22r')) || [];
                 } catch {
                     return [];
                 }
@@ -2386,7 +3204,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v1.3 | CDN-edition v2 loaded');
+            console.log('🚀 dual-speed-tester v2.2r | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
