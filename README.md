@@ -9,6 +9,11 @@
 
 
 
+https://kirilldual0987.github.io/dual-speed-tester/
+
+
+
+
 
 
 
