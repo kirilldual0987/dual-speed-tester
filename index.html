@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v1.1</title>
+    <title>dual-speed-tester v1.3</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -33,7 +33,6 @@
             --upload: #c3a6ff;
             --ping: #ffcc66;
             
-            /* Rating colors */
             --rating-critical: #ff3366;
             --rating-poor: #ff6666;
             --rating-fair: #ff9966;
@@ -110,13 +109,148 @@
             font-size: 12px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+        }
+
+        .connection-info-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .connection-info-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .connection-info-item .value {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .connection-info-item .value.loading {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .connection-info-item .value.success {
+            color: var(--success);
+        }
+
+        .connection-info-item .value.error {
+            color: var(--error);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-dot.loading {
+            background: var(--warning);
+            animation: blink 1s infinite;
+        }
+
+        .status-dot.success {
+            background: var(--success);
+        }
+
+        .status-dot.error {
+            background: var(--error);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Connection Type Badge */
+        .connection-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .connection-type-badge.fiber {
+            background: rgba(92, 207, 230, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(92, 207, 230, 0.3);
+        }
+
+        .connection-type-badge.cable {
+            background: rgba(79, 214, 190, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(79, 214, 190, 0.3);
+        }
+
+        .connection-type-badge.dsl {
+            background: rgba(195, 166, 255, 0.15);
+            color: var(--purple);
+            border: 1px solid rgba(195, 166, 255, 0.3);
+        }
+
+        .connection-type-badge.cellular-5g {
+            background: rgba(92, 207, 230, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(92, 207, 230, 0.3);
+        }
+
+        .connection-type-badge.cellular-4g {
+            background: rgba(153, 255, 153, 0.15);
+            color: #99ff99;
+            border: 1px solid rgba(153, 255, 153, 0.3);
+        }
+
+        .connection-type-badge.cellular-3g {
+            background: rgba(255, 204, 102, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(255, 204, 102, 0.3);
+        }
+
+        .connection-type-badge.cellular-2g {
+            background: rgba(255, 102, 102, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(255, 102, 102, 0.3);
+        }
+
+        .connection-type-badge.wifi {
+            background: rgba(79, 214, 190, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(79, 214, 190, 0.3);
+        }
+
+        .connection-type-badge.ethernet {
+            background: rgba(92, 207, 230, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(92, 207, 230, 0.3);
+        }
+
+        .connection-type-badge.satellite {
+            background: rgba(195, 166, 255, 0.15);
+            color: var(--purple);
+            border: 1px solid rgba(195, 166, 255, 0.3);
+        }
+
+        .connection-type-badge.unknown {
+            background: rgba(108, 122, 150, 0.15);
+            color: var(--text-muted);
+            border: 1px solid rgba(108, 122, 150, 0.3);
         }
 
         /* Main Content */
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 380px;
             gap: 24px;
             flex: 1;
         }
@@ -167,12 +301,6 @@
             stroke-dashoffset: 565.48;
             transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
             filter: drop-shadow(0 0 10px currentColor);
-        }
-
-        .speedometer-ticks {
-            position: absolute;
-            width: 100%;
-            height: 100%;
         }
 
         .speed-display {
@@ -226,28 +354,10 @@
             overflow: hidden;
         }
 
-        .start-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(92, 207, 230, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
         .start-button:hover {
             background: linear-gradient(135deg, rgba(92, 207, 230, 0.2) 0%, rgba(195, 166, 255, 0.2) 100%);
             box-shadow: 0 0 40px rgba(92, 207, 230, 0.3);
             transform: scale(1.05);
-        }
-
-        .start-button:active::before {
-            width: 200px;
-            height: 200px;
         }
 
         .start-button:disabled {
@@ -271,7 +381,114 @@
             font-size: 32px;
         }
 
-        /* Connection Rating Card */
+        /* Connection Type Card */
+        .connection-type-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-top: 24px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .connection-type-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .connection-type-title {
+            font-size: 14px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-type-main {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .connection-type-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .connection-type-name {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .connection-type-tech {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .connection-type-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .connection-detail-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .connection-detail-value {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .connection-detail-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .connection-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+        }
+
+        .connection-status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .connection-status-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Rating Card */
         .rating-card {
             background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
             border-radius: 16px;
@@ -289,14 +506,8 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .rating-header {
@@ -426,6 +637,7 @@
         .rating-recommendations-list {
             font-size: 12px;
             color: var(--text-secondary);
+            list-style: none;
         }
 
         .rating-recommendations-list li {
@@ -473,6 +685,10 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .panel-title .refresh-btn {
+            margin-left: auto;
         }
 
         /* Result Items */
@@ -585,6 +801,15 @@
         .server-item-value {
             color: var(--text-primary);
             font-weight: 500;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .server-item-value.loading {
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         /* Progress Bar */
@@ -634,7 +859,7 @@
 
         /* History */
         .history-list {
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
@@ -661,7 +886,7 @@
 
         .history-speeds {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             align-items: center;
         }
 
@@ -720,7 +945,7 @@
                 font-size: 56px;
             }
 
-            .rating-details {
+            .rating-details, .connection-type-details {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -739,6 +964,10 @@
 
             .connection-info {
                 text-align: center;
+            }
+
+            .connection-info-item {
+                justify-content: center;
             }
 
             .speedometer-container {
@@ -768,8 +997,8 @@
                 font-size: 36px;
             }
 
-            .rating-details {
-                grid-template-columns: repeat(2, 1fr);
+            .connection-type-name {
+                font-size: 22px;
             }
         }
 
@@ -820,6 +1049,47 @@
         .result-item:nth-child(2) { animation-delay: 0.2s; }
         .result-item:nth-child(3) { animation-delay: 0.3s; }
         .result-item:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Refresh button */
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(92, 207, 230, 0.1);
+        }
+
+        .refresh-btn i {
+            margin-right: 4px;
+        }
+
+        /* Real-time connection monitor */
+        .connection-monitor {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .connection-monitor .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
     </style>
 </head>
 <body>
@@ -827,7 +1097,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v1.1</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v1.3</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -835,9 +1105,27 @@
                 </p>
             </div>
             <div class="connection-info" id="connection-info">
-                <div><i class="fas fa-map-marker-alt"></i> Определение...</div>
-                <div><i class="fas fa-server"></i> Выбор сервера...</div>
-                <div><i class="fas fa-network-wired"></i> Тип соединения: —</div>
+                <div class="connection-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="value loading" id="header-location">
+                        <span class="status-dot loading"></span>Определение местоположения...
+                    </span>
+                </div>
+                <div class="connection-info-item">
+                    <i class="fas fa-building"></i>
+                    <span class="value loading" id="header-isp">
+                        <span class="status-dot loading"></span>Определение провайдера...
+                    </span>
+                </div>
+                <div class="connection-info-item">
+                    <i class="fas fa-network-wired"></i>
+                    <span class="value" id="header-connection">
+                        <span class="connection-type-badge unknown" id="connection-badge">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            Определение...
+                        </span>
+                    </span>
+                </div>
             </div>
         </header>
 
@@ -846,7 +1134,6 @@
             <!-- Speedometer Section -->
             <div class="speedometer-section">
                 <div class="speedometer-container">
-                    <!-- SVG Gauge -->
                     <svg class="speedometer-svg" viewBox="0 0 200 200">
                         <circle class="speedometer-bg" cx="100" cy="100" r="90" 
                                 stroke-dasharray="424.12" stroke-dashoffset="141.37"/>
@@ -880,7 +1167,57 @@
                     </div>
                 </div>
 
-                <!-- Connection Rating Card -->
+                <!-- Connection Type Card -->
+                <div class="connection-type-card" id="connection-type-card">
+                    <div class="connection-type-header">
+                        <div class="connection-type-title">
+                            <i class="fas fa-broadcast-tower"></i> Тип соединения
+                        </div>
+                        <button class="refresh-btn" id="refresh-connection-btn" title="Обновить">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="connection-type-main">
+                        <div class="connection-type-icon" id="connection-type-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <div class="connection-type-name" id="connection-type-name">Определение...</div>
+                        <div class="connection-type-tech" id="connection-type-tech">Анализ характеристик соединения</div>
+                    </div>
+
+                    <div class="connection-type-details">
+                        <div class="connection-detail-item">
+                            <div class="connection-detail-value" id="conn-detail-type">—</div>
+                            <div class="connection-detail-label">Интерфейс</div>
+                        </div>
+                        <div class="connection-detail-item">
+                            <div class="connection-detail-value" id="conn-detail-effective">—</div>
+                            <div class="connection-detail-label">Эфф. тип</div>
+                        </div>
+                        <div class="connection-detail-item">
+                            <div class="connection-detail-value" id="conn-detail-downlink">—</div>
+                            <div class="connection-detail-label">Downlink</div>
+                        </div>
+                        <div class="connection-detail-item">
+                            <div class="connection-detail-value" id="conn-detail-rtt">—</div>
+                            <div class="connection-detail-label">RTT</div>
+                        </div>
+                    </div>
+
+                    <div class="connection-status-bar">
+                        <div class="connection-status-indicator" id="connection-status-indicator" style="background: var(--success);"></div>
+                        <div class="connection-status-text" id="connection-status-text">Соединение активно</div>
+                    </div>
+
+                    <div class="connection-monitor" id="connection-monitor">
+                        <span class="live-dot"></span>
+                        <span>Мониторинг в реальном времени</span>
+                        <span id="last-connection-update">—</span>
+                    </div>
+                </div>
+
+                <!-- Rating Card -->
                 <div class="rating-card" id="rating-card">
                     <div class="rating-header">
                         <div class="rating-title">Оценка соединения</div>
@@ -992,19 +1329,28 @@
                 <div class="panel-card">
                     <div class="panel-title">
                         <i class="fas fa-server"></i> Информация о соединении
+                        <button class="refresh-btn" id="refresh-info-btn" title="Обновить информацию">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
                     </div>
                     <div class="server-info">
                         <div class="server-item">
                             <span class="server-item-label">
-                                <i class="fas fa-map-marker-alt"></i> IP адрес
+                                <i class="fas fa-fingerprint"></i> IP адрес
                             </span>
-                            <span class="server-item-value" id="ip-address">Определение...</span>
+                            <span class="server-item-value loading" id="ip-address">Определение...</span>
                         </div>
                         <div class="server-item">
                             <span class="server-item-label">
-                                <i class="fas fa-globe"></i> Провайдер
+                                <i class="fas fa-building"></i> Провайдер
                             </span>
-                            <span class="server-item-value" id="isp-name">Определение...</span>
+                            <span class="server-item-value loading" id="isp-name">Определение...</span>
+                        </div>
+                        <div class="server-item">
+                            <span class="server-item-label">
+                                <i class="fas fa-map-marker-alt"></i> Местоположение
+                            </span>
+                            <span class="server-item-value loading" id="location">Определение...</span>
                         </div>
                         <div class="server-item">
                             <span class="server-item-label">
@@ -1037,7 +1383,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v1.1 | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v1.3 | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1046,79 +1392,177 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v1.1 | CDN-edition v2
+        // DUAL-SPEED-TESTER v1.3 | CDN-edition v2
+        // Real Connection Type Detection
         // ===========================================================================
 
-        // Rating system configuration
+        // Connection Type Detection System
+        const CONNECTION_TYPES = {
+            // Fiber optic
+            FIBER: {
+                name: 'Fiber Optic',
+                nameRu: 'Оптоволокно',
+                icon: 'fa-bolt',
+                color: '#5ccfe6',
+                badgeClass: 'fiber',
+                description: 'Высокоскоростное оптоволоконное соединение',
+                minDownload: 100,
+                maxPing: 20,
+                symmetric: true
+            },
+            // Cable
+            CABLE: {
+                name: 'Cable',
+                nameRu: 'Кабельное',
+                icon: 'fa-ethernet',
+                color: '#4fd6be',
+                badgeClass: 'cable',
+                description: 'Кабельное соединение (коаксиал/витая пара)',
+                minDownload: 25,
+                maxPing: 40,
+                symmetric: false
+            },
+            // DSL
+            DSL: {
+                name: 'DSL',
+                nameRu: 'DSL',
+                icon: 'fa-phone-alt',
+                color: '#c3a6ff',
+                badgeClass: 'dsl',
+                description: 'Цифровая абонентская линия',
+                minDownload: 5,
+                maxPing: 60,
+                symmetric: false
+            },
+            // 5G
+            CELLULAR_5G: {
+                name: '5G',
+                nameRu: '5G',
+                icon: 'fa-signal',
+                color: '#5ccfe6',
+                badgeClass: 'cellular-5g',
+                description: 'Мобильная сеть пятого поколения',
+                minDownload: 50,
+                maxPing: 30,
+                symmetric: false
+            },
+            // 4G/LTE
+            CELLULAR_4G: {
+                name: '4G LTE',
+                nameRu: '4G LTE',
+                icon: 'fa-signal',
+                color: '#99ff99',
+                badgeClass: 'cellular-4g',
+                description: 'Мобильная сеть четвёртого поколения',
+                minDownload: 10,
+                maxPing: 60,
+                symmetric: false
+            },
+            // 3G
+            CELLULAR_3G: {
+                name: '3G',
+                nameRu: '3G',
+                icon: 'fa-signal',
+                color: '#ffcc66',
+                badgeClass: 'cellular-3g',
+                description: 'Мобильная сеть третьего поколения',
+                minDownload: 1,
+                maxPing: 150,
+                symmetric: false
+            },
+            // 2G
+            CELLULAR_2G: {
+                name: '2G',
+                nameRu: '2G/EDGE',
+                icon: 'fa-signal',
+                color: '#ff6666',
+                badgeClass: 'cellular-2g',
+                description: 'Мобильная сеть второго поколения',
+                minDownload: 0,
+                maxPing: 300,
+                symmetric: false
+            },
+            // WiFi
+            WIFI: {
+                name: 'WiFi',
+                nameRu: 'Wi-Fi',
+                icon: 'fa-wifi',
+                color: '#4fd6be',
+                badgeClass: 'wifi',
+                description: 'Беспроводное соединение WiFi',
+                minDownload: 0,
+                maxPing: 50,
+                symmetric: true
+            },
+            // Ethernet
+            ETHERNET: {
+                name: 'Ethernet',
+                nameRu: 'Ethernet',
+                icon: 'fa-network-wired',
+                color: '#5ccfe6',
+                badgeClass: 'ethernet',
+                description: 'Проводное Ethernet соединение',
+                minDownload: 0,
+                maxPing: 10,
+                symmetric: true
+            },
+            // Satellite
+            SATELLITE: {
+                name: 'Satellite',
+                nameRu: 'Спутник',
+                icon: 'fa-satellite-dish',
+                color: '#c3a6ff',
+                badgeClass: 'satellite',
+                description: 'Спутниковое интернет-соединение',
+                minDownload: 10,
+                maxPing: 500,
+                symmetric: false
+            },
+            // Unknown
+            UNKNOWN: {
+                name: 'Unknown',
+                nameRu: 'Неизвестно',
+                icon: 'fa-question-circle',
+                color: '#6c7a96',
+                badgeClass: 'unknown',
+                description: 'Тип соединения не определён',
+                minDownload: 0,
+                maxPing: 999,
+                symmetric: false
+            }
+        };
+
+        // Technology detection based on speed characteristics
+        const SPEED_TECHNOLOGY_MAP = [
+            { minDown: 500, maxPing: 15, type: 'FIBER', confidence: 95 },
+            { minDown: 200, maxPing: 20, type: 'FIBER', confidence: 90 },
+            { minDown: 100, maxPing: 25, uploadRatio: 0.8, type: 'FIBER', confidence: 85 },
+            { minDown: 100, maxPing: 30, type: 'CABLE', confidence: 80 },
+            { minDown: 50, maxPing: 35, type: 'CABLE', confidence: 75 },
+            { minDown: 50, maxPing: 50, cellular: true, type: 'CELLULAR_5G', confidence: 85 },
+            { minDown: 25, maxPing: 50, type: 'CABLE', confidence: 70 },
+            { minDown: 20, maxPing: 70, cellular: true, type: 'CELLULAR_4G', confidence: 80 },
+            { minDown: 10, maxPing: 80, cellular: true, type: 'CELLULAR_4G', confidence: 70 },
+            { minDown: 10, maxPing: 60, type: 'DSL', confidence: 65 },
+            { minDown: 5, maxPing: 100, type: 'DSL', confidence: 60 },
+            { minDown: 1, maxPing: 200, cellular: true, type: 'CELLULAR_3G', confidence: 75 },
+            { minDown: 0.5, maxPing: 300, cellular: true, type: 'CELLULAR_3G', confidence: 65 },
+            { minDown: 0, maxPing: 500, highPing: true, type: 'SATELLITE', confidence: 70 },
+            { minDown: 0, maxPing: 400, cellular: true, type: 'CELLULAR_2G', confidence: 60 }
+        ];
+
+        // Rating configuration
         const RATING_CONFIG = {
             levels: [
-                {
-                    name: 'Критическое',
-                    icon: 'fa-times-circle',
-                    color: '#ff3366',
-                    minScore: 0,
-                    maxScore: 15,
-                    description: 'Соединение практически непригодно для использования. Возможны серьёзные проблемы с сетью.'
-                },
-                {
-                    name: 'Очень плохое',
-                    icon: 'fa-exclamation-triangle',
-                    color: '#ff6666',
-                    minScore: 15,
-                    maxScore: 30,
-                    description: 'Крайне низкая производительность. Подходит только для базовых текстовых задач.'
-                },
-                {
-                    name: 'Плохое',
-                    icon: 'fa-thumbs-down',
-                    color: '#ff9966',
-                    minScore: 30,
-                    maxScore: 45,
-                    description: 'Низкое качество соединения. Видео будет буферизироваться, игры — лагать.'
-                },
-                {
-                    name: 'Среднее',
-                    icon: 'fa-minus-circle',
-                    color: '#ffcc66',
-                    minScore: 45,
-                    maxScore: 60,
-                    description: 'Приемлемое соединение для базовых задач. HD видео и видеозвонки могут работать с перебоями.'
-                },
-                {
-                    name: 'Хорошее',
-                    icon: 'fa-thumbs-up',
-                    color: '#99ff99',
-                    minScore: 60,
-                    maxScore: 75,
-                    description: 'Стабильное соединение для большинства задач. Комфортный просмотр HD видео и видеозвонки.'
-                },
-                {
-                    name: 'Отличное',
-                    icon: 'fa-star',
-                    color: '#4fd6be',
-                    minScore: 75,
-                    maxScore: 90,
-                    description: 'Высококачественное соединение. 4K видео, онлайн-игры и стриминг без проблем.'
-                },
-                {
-                    name: 'Мощное',
-                    icon: 'fa-bolt',
-                    color: '#5ccfe6',
-                    minScore: 90,
-                    maxScore: 100,
-                    description: 'Превосходное соединение! Подходит для любых задач, включая профессиональные.'
-                }
+                { name: 'Критическое', icon: 'fa-times-circle', color: '#ff3366', minScore: 0, maxScore: 15, description: 'Соединение практически непригодно для использования.' },
+                { name: 'Очень плохое', icon: 'fa-exclamation-triangle', color: '#ff6666', minScore: 15, maxScore: 30, description: 'Крайне низкая производительность.' },
+                { name: 'Плохое', icon: 'fa-thumbs-down', color: '#ff9966', minScore: 30, maxScore: 45, description: 'Низкое качество соединения.' },
+                { name: 'Среднее', icon: 'fa-minus-circle', color: '#ffcc66', minScore: 45, maxScore: 60, description: 'Приемлемое соединение для базовых задач.' },
+                { name: 'Хорошее', icon: 'fa-thumbs-up', color: '#99ff99', minScore: 60, maxScore: 75, description: 'Стабильное соединение.' },
+                { name: 'Отличное', icon: 'fa-star', color: '#4fd6be', minScore: 75, maxScore: 90, description: 'Высококачественное соединение.' },
+                { name: 'Мощное', icon: 'fa-bolt', color: '#5ccfe6', minScore: 90, maxScore: 100, description: 'Превосходное соединение!' }
             ],
-            
-            // Weight configuration for score calculation
-            weights: {
-                download: 0.40,  // 40%
-                upload: 0.25,    // 25%
-                ping: 0.25,      // 25%
-                jitter: 0.10    // 10%
-            },
-            
-            // Thresholds for individual metric ratings
+            weights: { download: 0.40, upload: 0.25, ping: 0.25, jitter: 0.10 },
             thresholds: {
                 download: [
                     { max: 5, rating: 'Плохо', color: '#ff6666' },
@@ -1153,51 +1597,50 @@
                     { max: Infinity, rating: 'Плохо', color: '#ff6666' }
                 ]
             },
-
-            // Recommendations based on issues
             recommendations: {
-                slowDownload: [
-                    'Проверьте, не скачивает ли что-то другое устройство',
-                    'Попробуйте перезагрузить роутер',
-                    'Обратитесь к провайдеру для проверки линии'
-                ],
-                slowUpload: [
-                    'Закройте приложения, загружающие данные в облако',
-                    'Проверьте настройки торрент-клиентов',
-                    'Возможно, ваш тариф имеет ограничение на upload'
-                ],
-                highPing: [
-                    'Используйте проводное подключение вместо Wi-Fi',
-                    'Закройте фоновые приложения и вкладки браузера',
-                    'Проверьте расстояние до роутера'
-                ],
-                highJitter: [
-                    'Проблема может быть в перегруженности сети',
-                    'Попробуйте тест в другое время суток',
-                    'Проверьте качество сетевых кабелей'
-                ],
-                excellent: [
-                    'Ваше соединение отлично подходит для любых задач',
-                    'Можете использовать 4K стриминг и онлайн-игры',
-                    'Качество связи на высшем уровне'
-                ]
+                slowDownload: ['Проверьте, не скачивает ли что-то другое устройство', 'Попробуйте перезагрузить роутер'],
+                slowUpload: ['Закройте приложения, загружающие данные в облако', 'Проверьте настройки торрент-клиентов'],
+                highPing: ['Используйте проводное подключение вместо Wi-Fi', 'Закройте фоновые приложения'],
+                highJitter: ['Проблема может быть в перегруженности сети', 'Попробуйте тест в другое время'],
+                excellent: ['Ваше соединение отлично подходит для любых задач', 'Качество связи на высшем уровне']
             }
         };
+
+        // IP API providers
+        const IP_API_PROVIDERS = [
+            {
+                name: 'ipapi.co',
+                url: 'https://ipapi.co/json/',
+                parse: (data) => ({
+                    ip: data.ip,
+                    isp: data.org || data.asn || 'Неизвестно',
+                    city: data.city || '',
+                    country: data.country_name || data.country || '',
+                    region: data.region || ''
+                })
+            },
+            {
+                name: 'ipify',
+                url: 'https://api.ipify.org?format=json',
+                parse: (data) => ({ ip: data.ip, isp: null, city: null, country: null, region: null }),
+                secondary: 'https://ipwhois.app/json/'
+            }
+        ];
 
         class DualSpeedTester {
             constructor() {
                 this.isRunning = false;
-                this.results = {
-                    download: 0,
-                    upload: 0,
-                    ping: 0,
-                    jitter: 0
-                };
+                this.results = { download: 0, upload: 0, ping: 0, jitter: 0 };
+                this.connectionInfo = { ip: null, isp: null, location: null, connectionType: null };
+                this.detectedConnectionType = null;
+                this.browserConnectionInfo = null;
                 this.history = this.loadHistory();
                 
                 this.initElements();
                 this.initGaugeMarks();
                 this.setupEventListeners();
+                this.setupConnectionMonitor();
+                this.detectBrowserConnectionType();
                 this.getConnectionInfo();
                 this.renderHistory();
             }
@@ -1223,8 +1666,25 @@
                 
                 this.ipAddress = document.getElementById('ip-address');
                 this.ispName = document.getElementById('isp-name');
+                this.locationEl = document.getElementById('location');
                 this.lastTest = document.getElementById('last-test');
                 this.historyList = document.getElementById('history-list');
+                
+                this.headerLocation = document.getElementById('header-location');
+                this.headerIsp = document.getElementById('header-isp');
+                this.connectionBadge = document.getElementById('connection-badge');
+                
+                // Connection type card elements
+                this.connectionTypeIcon = document.getElementById('connection-type-icon');
+                this.connectionTypeName = document.getElementById('connection-type-name');
+                this.connectionTypeTech = document.getElementById('connection-type-tech');
+                this.connDetailType = document.getElementById('conn-detail-type');
+                this.connDetailEffective = document.getElementById('conn-detail-effective');
+                this.connDetailDownlink = document.getElementById('conn-detail-downlink');
+                this.connDetailRtt = document.getElementById('conn-detail-rtt');
+                this.connectionStatusIndicator = document.getElementById('connection-status-indicator');
+                this.connectionStatusText = document.getElementById('connection-status-text');
+                this.lastConnectionUpdate = document.getElementById('last-connection-update');
                 
                 // Rating card elements
                 this.ratingCard = document.getElementById('rating-card');
@@ -1239,6 +1699,9 @@
                 this.detailUpload = document.getElementById('detail-upload');
                 this.detailPing = document.getElementById('detail-ping');
                 this.detailJitter = document.getElementById('detail-jitter');
+                
+                this.refreshInfoBtn = document.getElementById('refresh-info-btn');
+                this.refreshConnectionBtn = document.getElementById('refresh-connection-btn');
             }
 
             initGaugeMarks() {
@@ -1267,49 +1730,313 @@
 
             setupEventListeners() {
                 this.startBtn.addEventListener('click', () => this.startTest());
+                this.refreshInfoBtn.addEventListener('click', () => this.getConnectionInfo());
+                this.refreshConnectionBtn.addEventListener('click', () => this.detectBrowserConnectionType());
                 
                 document.addEventListener('keydown', (e) => {
                     if (e.code === 'Space' && !e.target.matches('input, textarea, button')) {
                         e.preventDefault();
-                        if (!this.isRunning) {
-                            this.startTest();
-                        }
+                        if (!this.isRunning) this.startTest();
                     }
                 });
             }
 
-            async getConnectionInfo() {
-                try {
-                    const response = await fetch('https://ipapi.co/json/', { 
-                        mode: 'cors',
-                        cache: 'no-cache'
+            setupConnectionMonitor() {
+                if (navigator.connection) {
+                    navigator.connection.addEventListener('change', () => {
+                        console.log('Connection changed!');
+                        this.detectBrowserConnectionType();
+                        this.updateConnectionMonitorTime();
                     });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.ipAddress.textContent = data.ip || 'Недоступно';
-                        this.ispName.textContent = data.org || data.asn || 'Недоступно';
-                        
-                        const connectionInfo = document.getElementById('connection-info');
-                        connectionInfo.innerHTML = `
-                            <div><i class="fas fa-map-marker-alt"></i> ${data.city || ''}, ${data.country_name || ''}</div>
-                            <div><i class="fas fa-server"></i> ${data.org || 'Неизвестно'}</div>
-                            <div><i class="fas fa-network-wired"></i> ${this.getConnectionType()}</div>
-                        `;
-                    }
-                } catch (error) {
-                    console.log('Could not fetch IP info:', error);
-                    this.ipAddress.textContent = 'Недоступно';
-                    this.ispName.textContent = 'Недоступно';
+                }
+
+                // Also monitor online/offline status
+                window.addEventListener('online', () => this.updateConnectionStatus(true));
+                window.addEventListener('offline', () => this.updateConnectionStatus(false));
+            }
+
+            updateConnectionStatus(isOnline) {
+                if (isOnline) {
+                    this.connectionStatusIndicator.style.background = 'var(--success)';
+                    this.connectionStatusText.textContent = 'Соединение активно';
+                } else {
+                    this.connectionStatusIndicator.style.background = 'var(--error)';
+                    this.connectionStatusText.textContent = 'Соединение потеряно';
                 }
             }
 
-            getConnectionType() {
-                if (navigator.connection) {
-                    const conn = navigator.connection;
-                    return conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Неизвестно';
+            updateConnectionMonitorTime() {
+                const now = new Date();
+                this.lastConnectionUpdate.textContent = now.toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+
+            detectBrowserConnectionType() {
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                
+                let browserInfo = {
+                    type: 'unknown',
+                    effectiveType: 'unknown',
+                    downlink: null,
+                    rtt: null,
+                    saveData: false
+                };
+
+                if (conn) {
+                    browserInfo = {
+                        type: conn.type || 'unknown',
+                        effectiveType: conn.effectiveType || 'unknown',
+                        downlink: conn.downlink || null,
+                        rtt: conn.rtt || null,
+                        saveData: conn.saveData || false
+                    };
                 }
-                return 'Неизвестно';
+
+                this.browserConnectionInfo = browserInfo;
+                
+                // Determine initial connection type based on browser info
+                let detectedType = this.determineConnectionTypeFromBrowser(browserInfo);
+                this.updateConnectionTypeDisplay(detectedType, browserInfo, false);
+                this.updateConnectionMonitorTime();
+            }
+
+            determineConnectionTypeFromBrowser(browserInfo) {
+                const { type, effectiveType, downlink, rtt } = browserInfo;
+
+                // First check physical connection type
+                if (type === 'ethernet') {
+                    return CONNECTION_TYPES.ETHERNET;
+                }
+                
+                if (type === 'wifi') {
+                    return CONNECTION_TYPES.WIFI;
+                }
+
+                if (type === 'cellular') {
+                    // Determine cellular generation
+                    if (effectiveType === '4g' && downlink && downlink > 30) {
+                        return CONNECTION_TYPES.CELLULAR_5G;
+                    }
+                    if (effectiveType === '4g') {
+                        return CONNECTION_TYPES.CELLULAR_4G;
+                    }
+                    if (effectiveType === '3g') {
+                        return CONNECTION_TYPES.CELLULAR_3G;
+                    }
+                    if (effectiveType === '2g' || effectiveType === 'slow-2g') {
+                        return CONNECTION_TYPES.CELLULAR_2G;
+                    }
+                    return CONNECTION_TYPES.CELLULAR_4G; // Default cellular
+                }
+
+                // If type is unknown, use effectiveType and metrics
+                if (effectiveType === '4g') {
+                    if (downlink && downlink > 50) {
+                        return { ...CONNECTION_TYPES.FIBER, nameRu: 'Высокоскоростное' };
+                    }
+                    return { ...CONNECTION_TYPES.CABLE, nameRu: 'Широкополосное' };
+                }
+                
+                if (effectiveType === '3g') {
+                    return CONNECTION_TYPES.DSL;
+                }
+                
+                if (effectiveType === '2g' || effectiveType === 'slow-2g') {
+                    return CONNECTION_TYPES.CELLULAR_2G;
+                }
+
+                // Check for satellite (high latency)
+                if (rtt && rtt > 500) {
+                    return CONNECTION_TYPES.SATELLITE;
+                }
+
+                return CONNECTION_TYPES.UNKNOWN;
+            }
+
+            determineRealConnectionType(download, upload, ping, jitter) {
+                const uploadRatio = upload / download;
+                const isCellular = this.browserConnectionInfo?.type === 'cellular';
+                const isHighPing = ping > 400;
+
+                // Find best matching technology
+                for (const tech of SPEED_TECHNOLOGY_MAP) {
+                    let matches = true;
+                    
+                    if (tech.minDown !== undefined && download < tech.minDown) matches = false;
+                    if (tech.maxPing !== undefined && ping > tech.maxPing) matches = false;
+                    if (tech.uploadRatio !== undefined && uploadRatio < tech.uploadRatio) matches = false;
+                    if (tech.cellular !== undefined && tech.cellular !== isCellular) matches = false;
+                    if (tech.highPing !== undefined && tech.highPing !== isHighPing) matches = false;
+                    
+                    if (matches) {
+                        const connectionType = CONNECTION_TYPES[tech.type];
+                        return {
+                            ...connectionType,
+                            confidence: tech.confidence,
+                            detectedBy: 'speed-analysis'
+                        };
+                    }
+                }
+
+                // Fallback: determine by speed alone
+                if (download >= 100) {
+                    return { ...CONNECTION_TYPES.FIBER, confidence: 60 };
+                } else if (download >= 25) {
+                    return { ...CONNECTION_TYPES.CABLE, confidence: 55 };
+                } else if (download >= 5) {
+                    return { ...CONNECTION_TYPES.DSL, confidence: 50 };
+                } else if (isCellular) {
+                    return { ...CONNECTION_TYPES.CELLULAR_3G, confidence: 50 };
+                }
+
+                return { ...CONNECTION_TYPES.UNKNOWN, confidence: 0 };
+            }
+
+            updateConnectionTypeDisplay(connType, browserInfo, isRealTest = false) {
+                // Update icon
+                this.connectionTypeIcon.innerHTML = `<i class="fas ${connType.icon}" style="color: ${connType.color}"></i>`;
+                
+                // Update name
+                this.connectionTypeName.textContent = connType.nameRu;
+                this.connectionTypeName.style.color = connType.color;
+                
+                // Update description
+                let techText = connType.description;
+                if (isRealTest && connType.confidence) {
+                    techText += ` (${connType.confidence}% уверенность)`;
+                }
+                this.connectionTypeTech.textContent = techText;
+                
+                // Update details
+                const typeLabels = {
+                    'wifi': 'Wi-Fi',
+                    'cellular': 'Мобильная',
+                    'ethernet': 'Ethernet',
+                    'bluetooth': 'Bluetooth',
+                    'wimax': 'WiMAX',
+                    'other': 'Другое',
+                    'none': 'Нет',
+                    'unknown': '—'
+                };
+                
+                const effectiveLabels = {
+                    'slow-2g': 'Slow 2G',
+                    '2g': '2G',
+                    '3g': '3G',
+                    '4g': '4G',
+                    'unknown': '—'
+                };
+
+                this.connDetailType.textContent = typeLabels[browserInfo.type] || browserInfo.type || '—';
+                this.connDetailEffective.textContent = effectiveLabels[browserInfo.effectiveType] || browserInfo.effectiveType || '—';
+                this.connDetailDownlink.textContent = browserInfo.downlink ? `${browserInfo.downlink} Mbps` : '—';
+                this.connDetailRtt.textContent = browserInfo.rtt ? `${browserInfo.rtt} ms` : '—';
+
+                // Update header badge
+                this.connectionBadge.className = `connection-type-badge ${connType.badgeClass}`;
+                this.connectionBadge.innerHTML = `<i class="fas ${connType.icon}"></i> ${connType.nameRu}`;
+
+                // Store detected type
+                this.detectedConnectionType = connType;
+            }
+
+            async getConnectionInfo() {
+                this.setLoadingState(true);
+                
+                let success = false;
+                
+                for (const provider of IP_API_PROVIDERS) {
+                    try {
+                        const response = await fetch(provider.url, { method: 'GET', cache: 'no-cache' });
+                        
+                        if (!response.ok) continue;
+                        
+                        const data = await response.json();
+                        const parsed = provider.parse(data);
+                        
+                        if (provider.secondary && !parsed.isp) {
+                            try {
+                                const secondaryResponse = await fetch(provider.secondary + parsed.ip, { method: 'GET', cache: 'no-cache' });
+                                if (secondaryResponse.ok) {
+                                    const secondaryData = await secondaryResponse.json();
+                                    parsed.isp = secondaryData.isp || secondaryData.org || 'Неизвестно';
+                                    parsed.city = secondaryData.city || '';
+                                    parsed.country = secondaryData.country || '';
+                                    parsed.region = secondaryData.region || '';
+                                }
+                            } catch (e) {}
+                        }
+                        
+                        if (parsed.ip) {
+                            this.connectionInfo.ip = parsed.ip;
+                            this.connectionInfo.isp = parsed.isp || 'Неизвестно';
+                            
+                            const locationParts = [];
+                            if (parsed.city) locationParts.push(parsed.city);
+                            if (parsed.region && parsed.region !== parsed.city) locationParts.push(parsed.region);
+                            if (parsed.country) locationParts.push(parsed.country);
+                            
+                            this.connectionInfo.location = locationParts.length > 0 ? locationParts.join(', ') : 'Неизвестно';
+                            
+                            this.updateConnectionDisplay();
+                            success = true;
+                            break;
+                        }
+                    } catch (error) {
+                        continue;
+                    }
+                }
+                
+                if (!success) this.setErrorState();
+            }
+
+            setLoadingState(isLoading) {
+                if (isLoading) {
+                    this.ipAddress.textContent = 'Определение...';
+                    this.ipAddress.classList.add('loading');
+                    this.ispName.textContent = 'Определение...';
+                    this.ispName.classList.add('loading');
+                    this.locationEl.textContent = 'Определение...';
+                    this.locationEl.classList.add('loading');
+                    
+                    this.headerLocation.innerHTML = '<span class="status-dot loading"></span>Определение местоположения...';
+                    this.headerLocation.classList.add('loading');
+                    this.headerIsp.innerHTML = '<span class="status-dot loading"></span>Определение провайдера...';
+                    this.headerIsp.classList.add('loading');
+                }
+            }
+
+            updateConnectionDisplay() {
+                this.ipAddress.textContent = this.connectionInfo.ip || 'Неизвестно';
+                this.ipAddress.classList.remove('loading');
+                this.ispName.textContent = this.connectionInfo.isp || 'Неизвестно';
+                this.ispName.classList.remove('loading');
+                this.locationEl.textContent = this.connectionInfo.location || 'Неизвестно';
+                this.locationEl.classList.remove('loading');
+                
+                this.headerLocation.innerHTML = `<span class="status-dot success"></span>${this.connectionInfo.location || 'Неизвестно'}`;
+                this.headerLocation.classList.remove('loading');
+                this.headerLocation.classList.add('success');
+                this.headerIsp.innerHTML = `<span class="status-dot success"></span>${this.connectionInfo.isp || 'Неизвестно'}`;
+                this.headerIsp.classList.remove('loading');
+                this.headerIsp.classList.add('success');
+            }
+
+            setErrorState() {
+                this.ipAddress.textContent = 'Не удалось определить';
+                this.ipAddress.classList.remove('loading');
+                this.ispName.textContent = 'Не удалось определить';
+                this.ispName.classList.remove('loading');
+                this.locationEl.textContent = 'Не удалось определить';
+                this.locationEl.classList.remove('loading');
+                
+                this.headerLocation.innerHTML = '<span class="status-dot error"></span>Недоступно';
+                this.headerLocation.classList.add('error');
+                this.headerIsp.innerHTML = '<span class="status-dot error"></span>Недоступно';
+                this.headerIsp.classList.add('error');
             }
 
             async startTest() {
@@ -1346,12 +2073,10 @@
                 this.uploadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
                 this.pingResult.innerHTML = '—<span class="result-unit">ms</span>';
                 this.jitterResult.innerHTML = '—<span class="result-unit">ms</span>';
-                
                 this.downloadRating.textContent = '';
                 this.uploadRating.textContent = '';
                 this.pingRating.textContent = '';
                 this.jitterRating.textContent = '';
-                
                 this.updateGauge(0, 'var(--download)');
             }
 
@@ -1366,14 +2091,9 @@
                 for (let i = 0; i < 10; i++) {
                     const start = performance.now();
                     try {
-                        await fetch(testUrl + '?_=' + Date.now(), { 
-                            mode: 'cors',
-                            cache: 'no-store'
-                        });
-                        const ping = performance.now() - start;
-                        pings.push(ping);
-                        
-                        this.currentSpeed.textContent = Math.round(ping);
+                        await fetch(testUrl + '?_=' + Date.now(), { mode: 'cors', cache: 'no-store' });
+                        pings.push(performance.now() - start);
+                        this.currentSpeed.textContent = Math.round(pings[pings.length - 1]);
                         this.updateProgress((i + 1) / 10 * 20);
                     } catch (e) {
                         pings.push(50 + Math.random() * 30);
@@ -1381,11 +2101,8 @@
                     await this.sleep(100);
                 }
                 
-                const avgPing = pings.reduce((a, b) => a + b, 0) / pings.length;
-                const jitter = this.calculateJitter(pings);
-                
-                this.results.ping = Math.round(avgPing);
-                this.results.jitter = Math.round(jitter * 10) / 10;
+                this.results.ping = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
+                this.results.jitter = Math.round(this.calculateJitter(pings) * 10) / 10;
                 
                 this.pingResult.innerHTML = `${this.results.ping}<span class="result-unit">ms</span>`;
                 this.jitterResult.innerHTML = `${this.results.jitter}<span class="result-unit">ms</span>`;
@@ -1409,44 +2126,31 @@
                 this.currentSpeed.style.color = 'var(--download)';
                 this.updateGauge(0, 'var(--download)');
                 
-                const testFiles = [
-                    { url: 'https://speed.cloudflare.com/__down?bytes=', sizes: [100000, 500000, 1000000, 5000000, 10000000, 25000000] }
-                ];
-                
                 const speeds = [];
                 const startTime = performance.now();
                 const testDuration = 8000;
+                const sizes = [100000, 500000, 1000000, 5000000, 10000000, 25000000];
                 let iteration = 0;
                 
                 while (performance.now() - startTime < testDuration) {
-                    const sizeIndex = Math.min(iteration, testFiles[0].sizes.length - 1);
-                    const size = testFiles[0].sizes[sizeIndex];
+                    const size = sizes[Math.min(iteration, sizes.length - 1)];
                     
                     try {
                         const downloadStart = performance.now();
-                        const response = await fetch(testFiles[0].url + size + '&_=' + Date.now(), {
-                            cache: 'no-store'
-                        });
-                        
+                        const response = await fetch(`https://speed.cloudflare.com/__down?bytes=${size}&_=${Date.now()}`, { cache: 'no-store' });
                         const blob = await response.blob();
                         const downloadTime = (performance.now() - downloadStart) / 1000;
                         
                         if (downloadTime > 0) {
                             const speedMbps = (blob.size * 8) / (downloadTime * 1000000);
                             speeds.push(speedMbps);
-                            
-                            const currentSpeedVal = Math.round(speedMbps * 10) / 10;
-                            this.currentSpeed.textContent = currentSpeedVal.toFixed(1);
-                            this.updateGauge(currentSpeedVal, 'var(--download)');
+                            this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
+                            this.updateGauge(speedMbps, 'var(--download)');
                         }
-                    } catch (e) {
-                        console.log('Download chunk error:', e);
-                    }
+                    } catch (e) {}
                     
-                    const elapsed = performance.now() - startTime;
-                    this.updateProgress(20 + (elapsed / testDuration) * 40);
+                    this.updateProgress(20 + ((performance.now() - startTime) / testDuration) * 40);
                     iteration++;
-                    
                     await this.sleep(50);
                 }
                 
@@ -1471,51 +2175,34 @@
                 const speeds = [];
                 const startTime = performance.now();
                 const testDuration = 8000;
+                const sizes = [50000, 100000, 250000, 500000, 1000000, 2000000];
                 let iteration = 0;
                 
                 const generateData = (size) => {
-                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                     let result = '';
-                    for (let i = 0; i < size; i++) {
-                        result += chars.charAt(Math.floor(Math.random() * chars.length));
-                    }
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    for (let i = 0; i < size; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
                     return result;
                 };
                 
-                const sizes = [50000, 100000, 250000, 500000, 1000000, 2000000];
-                
                 while (performance.now() - startTime < testDuration) {
-                    const sizeIndex = Math.min(iteration, sizes.length - 1);
-                    const size = sizes[sizeIndex];
-                    const data = generateData(size);
+                    const size = sizes[Math.min(iteration, sizes.length - 1)];
                     
                     try {
                         const uploadStart = performance.now();
-                        
-                        await fetch('https://speed.cloudflare.com/__up', {
-                            method: 'POST',
-                            body: data,
-                            cache: 'no-store'
-                        });
-                        
+                        await fetch('https://speed.cloudflare.com/__up', { method: 'POST', body: generateData(size), cache: 'no-store' });
                         const uploadTime = (performance.now() - uploadStart) / 1000;
                         
                         if (uploadTime > 0) {
                             const speedMbps = (size * 8) / (uploadTime * 1000000);
                             speeds.push(speedMbps);
-                            
-                            const currentSpeedVal = Math.round(speedMbps * 10) / 10;
-                            this.currentSpeed.textContent = currentSpeedVal.toFixed(1);
-                            this.updateGauge(currentSpeedVal, 'var(--upload)');
+                            this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
+                            this.updateGauge(speedMbps, 'var(--upload)');
                         }
-                    } catch (e) {
-                        console.log('Upload chunk error:', e);
-                    }
+                    } catch (e) {}
                     
-                    const elapsed = performance.now() - startTime;
-                    this.updateProgress(60 + (elapsed / testDuration) * 40);
+                    this.updateProgress(60 + ((performance.now() - startTime) / testDuration) * 40);
                     iteration++;
-                    
                     await this.sleep(50);
                 }
                 
@@ -1532,8 +2219,7 @@
             }
 
             updateMetricRating(metric, value, element) {
-                const thresholds = RATING_CONFIG.thresholds[metric];
-                for (const threshold of thresholds) {
+                for (const threshold of RATING_CONFIG.thresholds[metric]) {
                     if (value <= threshold.max) {
                         element.textContent = threshold.rating;
                         element.style.backgroundColor = threshold.color + '20';
@@ -1541,93 +2227,6 @@
                         return;
                     }
                 }
-            }
-
-            calculateOverallScore() {
-                // Normalize each metric to 0-100 scale
-                const downloadScore = Math.min(100, (this.results.download / 100) * 100);
-                const uploadScore = Math.min(100, (this.results.upload / 50) * 100);
-                const pingScore = Math.max(0, 100 - (this.results.ping / 2));
-                const jitterScore = Math.max(0, 100 - (this.results.jitter * 2));
-                
-                // Calculate weighted average
-                const score = 
-                    downloadScore * RATING_CONFIG.weights.download +
-                    uploadScore * RATING_CONFIG.weights.upload +
-                    pingScore * RATING_CONFIG.weights.ping +
-                    jitterScore * RATING_CONFIG.weights.jitter;
-                
-                return Math.round(Math.max(0, Math.min(100, score)));
-            }
-
-            getRatingLevel(score) {
-                for (const level of RATING_CONFIG.levels) {
-                    if (score >= level.minScore && score < level.maxScore) {
-                        return level;
-                    }
-                }
-                return RATING_CONFIG.levels[RATING_CONFIG.levels.length - 1];
-            }
-
-            getRecommendations() {
-                const recommendations = [];
-                const score = this.calculateOverallScore();
-                
-                if (score >= 75) {
-                    return RATING_CONFIG.recommendations.excellent;
-                }
-                
-                if (this.results.download < 25) {
-                    recommendations.push(...RATING_CONFIG.recommendations.slowDownload.slice(0, 2));
-                }
-                if (this.results.upload < 10) {
-                    recommendations.push(...RATING_CONFIG.recommendations.slowUpload.slice(0, 2));
-                }
-                if (this.results.ping > 80) {
-                    recommendations.push(...RATING_CONFIG.recommendations.highPing.slice(0, 2));
-                }
-                if (this.results.jitter > 20) {
-                    recommendations.push(...RATING_CONFIG.recommendations.highJitter.slice(0, 1));
-                }
-                
-                return recommendations.length > 0 ? recommendations.slice(0, 4) : RATING_CONFIG.recommendations.excellent.slice(0, 2);
-            }
-
-            displayRating() {
-                const score = this.calculateOverallScore();
-                const level = this.getRatingLevel(score);
-                const recommendations = this.getRecommendations();
-                
-                // Update rating badge
-                this.ratingText.textContent = level.name;
-                this.ratingBadge.style.borderColor = level.color;
-                this.ratingBadge.style.color = level.color;
-                this.ratingBadge.style.backgroundColor = level.color + '15';
-                this.ratingBadge.querySelector('i').className = `fas ${level.icon}`;
-                
-                // Update score
-                this.ratingScore.textContent = score;
-                this.ratingScore.style.color = level.color;
-                
-                // Update description
-                this.ratingDescription.textContent = level.description;
-                
-                // Update details
-                this.detailDownload.textContent = `${this.results.download} Mbps`;
-                this.detailUpload.textContent = `${this.results.upload} Mbps`;
-                this.detailPing.textContent = `${this.results.ping} ms`;
-                this.detailJitter.textContent = `${this.results.jitter} ms`;
-                
-                // Update recommendations
-                this.ratingRecommendations.style.borderLeftColor = level.color;
-                this.recommendationsList.innerHTML = recommendations
-                    .map(rec => `<li>${rec}</li>`)
-                    .join('');
-                
-                // Show the card
-                this.ratingCard.classList.add('visible');
-                
-                return { score, level };
             }
 
             completeTest() {
@@ -1640,21 +2239,84 @@
                 this.updateGauge(this.results.download, 'var(--download)');
                 
                 const now = new Date();
-                this.lastTest.textContent = now.toLocaleTimeString();
+                this.lastTest.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 
-                // Display rating
+                // Determine REAL connection type based on test results
+                const realConnectionType = this.determineRealConnectionType(
+                    this.results.download,
+                    this.results.upload,
+                    this.results.ping,
+                    this.results.jitter
+                );
+                
+                // Update connection type display with real data
+                this.updateConnectionTypeDisplay(realConnectionType, this.browserConnectionInfo || {}, true);
+                
                 const { score, level } = this.displayRating();
+                this.saveToHistory(score, level.name, realConnectionType.nameRu);
+            }
+
+            calculateOverallScore() {
+                const downloadScore = Math.min(100, (this.results.download / 100) * 100);
+                const uploadScore = Math.min(100, (this.results.upload / 50) * 100);
+                const pingScore = Math.max(0, 100 - (this.results.ping / 2));
+                const jitterScore = Math.max(0, 100 - (this.results.jitter * 2));
                 
-                // Save to history with rating
-                this.saveToHistory(score, level.name);
+                return Math.round(Math.max(0, Math.min(100,
+                    downloadScore * RATING_CONFIG.weights.download +
+                    uploadScore * RATING_CONFIG.weights.upload +
+                    pingScore * RATING_CONFIG.weights.ping +
+                    jitterScore * RATING_CONFIG.weights.jitter
+                )));
+            }
+
+            getRatingLevel(score) {
+                for (const level of RATING_CONFIG.levels) {
+                    if (score >= level.minScore && score < level.maxScore) return level;
+                }
+                return RATING_CONFIG.levels[RATING_CONFIG.levels.length - 1];
+            }
+
+            getRecommendations() {
+                if (this.calculateOverallScore() >= 75) return RATING_CONFIG.recommendations.excellent;
+                
+                const recs = [];
+                if (this.results.download < 25) recs.push(...RATING_CONFIG.recommendations.slowDownload);
+                if (this.results.upload < 10) recs.push(...RATING_CONFIG.recommendations.slowUpload);
+                if (this.results.ping > 80) recs.push(...RATING_CONFIG.recommendations.highPing);
+                if (this.results.jitter > 20) recs.push(...RATING_CONFIG.recommendations.highJitter);
+                
+                return recs.length > 0 ? recs.slice(0, 4) : RATING_CONFIG.recommendations.excellent.slice(0, 2);
+            }
+
+            displayRating() {
+                const score = this.calculateOverallScore();
+                const level = this.getRatingLevel(score);
+                
+                this.ratingText.textContent = level.name;
+                this.ratingBadge.style.borderColor = level.color;
+                this.ratingBadge.style.color = level.color;
+                this.ratingBadge.style.backgroundColor = level.color + '15';
+                this.ratingBadge.querySelector('i').className = `fas ${level.icon}`;
+                
+                this.ratingScore.textContent = score;
+                this.ratingScore.style.color = level.color;
+                this.ratingDescription.textContent = level.description;
+                
+                this.detailDownload.textContent = `${this.results.download} Mbps`;
+                this.detailUpload.textContent = `${this.results.upload} Mbps`;
+                this.detailPing.textContent = `${this.results.ping} ms`;
+                this.detailJitter.textContent = `${this.results.jitter} ms`;
+                
+                this.ratingRecommendations.style.borderLeftColor = level.color;
+                this.recommendationsList.innerHTML = this.getRecommendations().map(r => `<li>${r}</li>`).join('');
+                
+                this.ratingCard.classList.add('visible');
+                return { score, level };
             }
 
             updateGauge(speed, color) {
-                const maxSpeed = 1000;
-                const normalizedSpeed = Math.min(speed / maxSpeed, 1);
-                const arcLength = 424.12;
-                const offset = arcLength * (1 - normalizedSpeed);
-                
+                const offset = 424.12 * (1 - Math.min(speed / 1000, 1));
                 this.speedGauge.style.strokeDashoffset = offset;
                 this.speedGauge.style.stroke = color;
             }
@@ -1664,29 +2326,28 @@
                 this.progressPercent.textContent = `${Math.round(percent)}%`;
             }
 
-            saveToHistory(score, ratingName) {
+            saveToHistory(score, ratingName, connectionType) {
                 const level = this.getRatingLevel(score);
                 
-                const entry = {
+                this.history.unshift({
                     date: new Date().toISOString(),
                     download: this.results.download,
                     upload: this.results.upload,
                     ping: this.results.ping,
-                    score: score,
+                    score,
                     rating: ratingName,
-                    ratingColor: level.color
-                };
+                    ratingColor: level.color,
+                    connectionType
+                });
                 
-                this.history.unshift(entry);
                 this.history = this.history.slice(0, 10);
-                
-                localStorage.setItem('dualspeedtester_history', JSON.stringify(this.history));
+                localStorage.setItem('dualspeedtester_history_v13', JSON.stringify(this.history));
                 this.renderHistory();
             }
 
             loadHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('dualspeedtester_history')) || [];
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v13')) || [];
                 } catch {
                     return [];
                 }
@@ -1700,26 +2361,18 @@
                 
                 this.historyList.innerHTML = this.history.map(entry => {
                     const date = new Date(entry.date);
-                    const timeStr = date.toLocaleString('ru-RU', { 
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                    
-                    const ratingColor = entry.ratingColor || '#6c7a96';
+                    const timeStr = date.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
                     
                     return `
                         <div class="history-item">
-                            <span class="history-date">${timeStr}</span>
+                            <div>
+                                <div class="history-date">${timeStr}</div>
+                                ${entry.connectionType ? `<small style="color: var(--text-muted)">${entry.connectionType}</small>` : ''}
+                            </div>
                             <div class="history-speeds">
-                                <span class="history-speed download">
-                                    <i class="fas fa-arrow-down"></i> ${entry.download}
-                                </span>
-                                <span class="history-speed upload">
-                                    <i class="fas fa-arrow-up"></i> ${entry.upload}
-                                </span>
-                                ${entry.rating ? `<span class="history-rating" style="background: ${ratingColor}20; color: ${ratingColor}">${entry.rating}</span>` : ''}
+                                <span class="history-speed download"><i class="fas fa-arrow-down"></i> ${entry.download}</span>
+                                <span class="history-speed upload"><i class="fas fa-arrow-up"></i> ${entry.upload}</span>
+                                ${entry.rating ? `<span class="history-rating" style="background: ${entry.ratingColor}20; color: ${entry.ratingColor}">${entry.rating}</span>` : ''}
                             </div>
                         </div>
                     `;
@@ -1731,10 +2384,9 @@
             }
         }
 
-        // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v1.1 | CDN-edition v2 loaded');
+            console.log('🚀 dual-speed-tester v1.3 | CDN-edition v2 loaded');
         });
     </script>
 </body>
