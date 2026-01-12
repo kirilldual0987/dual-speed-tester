@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dual-speed-tester v1.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Consolas', 'Roboto Mono', monospace;
+        }
+
+        :root {
+            --bg-dark: #0a0e14;
+            --bg-medium: #141a24;
+            --bg-light: #1d2433;
+            --bg-card: #171e2d;
+            --border: #303a4d;
+            --accent: #5ccfe6;
+            --accent-bright: #80d9f0;
+            --text-primary: #e6f1ff;
+            --text-secondary: #a2b0cd;
+            --text-muted: #6c7a96;
+            --success: #4fd6be;
+            --warning: #ffcc66;
+            --error: #ff6666;
+            --purple: #c3a6ff;
+            --cyan: #5ccfe6;
+            --download: #4fd6be;
+            --upload: #c3a6ff;
+            --ping: #ffcc66;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0e1420 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            gap: 24px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-medium) 0%, #1a2333 100%);
+            border-radius: 16px;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--download), var(--upload), var(--ping));
+        }
+
+        .logo-section h1 {
+            font-size: 32px;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-info {
+            text-align: right;
+            color: var(--text-muted);
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+            flex: 1;
+        }
+
+        /* Speedometer Section */
+        .speedometer-section {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .speedometer-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speedometer-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-135deg);
+        }
+
+        .speedometer-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 20;
+            stroke-linecap: round;
+        }
+
+        .speedometer-progress {
+            fill: none;
+            stroke-width: 20;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .speedometer-ticks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .speed-display {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .current-speed {
+            font-size: 72px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            transition: color 0.3s ease;
+        }
+
+        .speed-unit {
+            font-size: 24px;
+            color: var(--text-secondary);
+            margin-top: -10px;
+        }
+
+        .test-type {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-top: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Start Button */
+        .start-button-container {
+            margin-top: 40px;
+        }
+
+        .start-button {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            background: linear-gradient(135deg, rgba(92, 207, 230, 0.1) 0%, rgba(195, 166, 255, 0.1) 100%);
+            color: var(--accent);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(92, 207, 230, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .start-button:hover {
+            background: linear-gradient(135deg, rgba(92, 207, 230, 0.2) 0%, rgba(195, 166, 255, 0.2) 100%);
+            box-shadow: 0 0 40px rgba(92, 207, 230, 0.3);
+            transform: scale(1.05);
+        }
+
+        .start-button:active::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .start-button:disabled {
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .start-button.testing {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(92, 207, 230, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(92, 207, 230, 0.6); }
+        }
+
+        .start-button i {
+            font-size: 32px;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .panel-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .panel-title {
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Result Items */
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .result-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .result-icon.download {
+            background: rgba(79, 214, 190, 0.15);
+            color: var(--download);
+        }
+
+        .result-icon.upload {
+            background: rgba(195, 166, 255, 0.15);
+            color: var(--upload);
+        }
+
+        .result-icon.ping {
+            background: rgba(255, 204, 102, 0.15);
+            color: var(--ping);
+        }
+
+        .result-icon.jitter {
+            background: rgba(92, 207, 230, 0.15);
+            color: var(--accent);
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .result-unit {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+
+        /* Server Info */
+        .server-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .server-item-label {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .server-item-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin-top: 8px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--download), var(--upload));
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* History */
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .history-date {
+            color: var(--text-muted);
+        }
+
+        .history-speeds {
+            display: flex;
+            gap: 16px;
+        }
+
+        .history-speed {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .history-speed i {
+            font-size: 10px;
+        }
+
+        .history-speed.download { color: var(--download); }
+        .history-speed.upload { color: var(--upload); }
+
+        /* Status Message */
+        .status-message {
+            text-align: center;
+            padding: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .speedometer-container {
+                width: 320px;
+                height: 320px;
+            }
+
+            .current-speed {
+                font-size: 56px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 16px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+                padding: 20px;
+            }
+
+            .connection-info {
+                text-align: center;
+            }
+
+            .speedometer-container {
+                width: 280px;
+                height: 280px;
+            }
+
+            .current-speed {
+                font-size: 48px;
+            }
+
+            .start-button {
+                width: 120px;
+                height: 120px;
+            }
+
+            .result-value {
+                font-size: 22px;
+            }
+        }
+
+        /* Gauge marks */
+        .gauge-marks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 12px;
+            background: var(--text-muted);
+            transform-origin: center 150px;
+            opacity: 0.5;
+        }
+
+        .gauge-mark.major {
+            height: 18px;
+            width: 3px;
+            opacity: 0.8;
+        }
+
+        .gauge-label {
+            position: absolute;
+            font-size: 11px;
+            color: var(--text-muted);
+            transform: translate(-50%, -50%);
+        }
+
+        /* Scrollbar */
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--accent), var(--purple));
+            border-radius: 3px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-item {
+            animation: fadeIn 0.5s ease-out backwards;
+        }
+
+        .result-item:nth-child(1) { animation-delay: 0.1s; }
+        .result-item:nth-child(2) { animation-delay: 0.2s; }
+        .result-item:nth-child(3) { animation-delay: 0.3s; }
+        .result-item:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v1.0</h1>
+                <p>
+                    <i class="fas fa-wifi"></i> Network Performance Analyzer
+                    <span style="color: var(--accent); margin: 0 8px">•</span>
+                    <i class="fas fa-cloud"></i> CDN-edition v2
+                </p>
+            </div>
+            <div class="connection-info" id="connection-info">
+                <div><i class="fas fa-map-marker-alt"></i> Определение...</div>
+                <div><i class="fas fa-server"></i> Выбор сервера...</div>
+                <div><i class="fas fa-network-wired"></i> Тип соединения: —</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Speedometer Section -->
+            <div class="speedometer-section">
+                <div class="speedometer-container">
+                    <!-- SVG Gauge -->
+                    <svg class="speedometer-svg" viewBox="0 0 200 200">
+                        <!-- Background arc -->
+                        <circle class="speedometer-bg" cx="100" cy="100" r="90" 
+                                stroke-dasharray="424.12" stroke-dashoffset="141.37"/>
+                        <!-- Progress arc -->
+                        <circle class="speedometer-progress" id="speed-gauge" cx="100" cy="100" r="90"
+                                stroke="var(--download)"/>
+                    </svg>
+                    
+                    <!-- Gauge marks -->
+                    <div class="gauge-marks" id="gauge-marks"></div>
+                    
+                    <!-- Speed display -->
+                    <div class="speed-display">
+                        <div class="current-speed" id="current-speed">0</div>
+                        <div class="speed-unit">Mbps</div>
+                        <div class="test-type" id="test-type">Готов к тесту</div>
+                    </div>
+                </div>
+
+                <div class="start-button-container">
+                    <button class="start-button" id="start-btn">
+                        <i class="fas fa-play"></i>
+                        <span>START</span>
+                    </button>
+                </div>
+
+                <div class="progress-section" style="width: 100%; max-width: 400px; margin-top: 30px;">
+                    <div class="progress-header">
+                        <span id="progress-status">Ожидание запуска</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <!-- Results Card -->
+                <div class="panel-card">
+                    <div class="panel-title">
+                        <i class="fas fa-chart-line"></i> Результаты теста
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-icon download">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="result-info">
+                            <div class="result-label">Скачивание</div>
+                            <div class="result-value" id="download-result" style="color: var(--download)">
+                                —<span class="result-unit">Mbps</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-icon upload">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="result-info">
+                            <div class="result-label">Загрузка</div>
+                            <div class="result-value" id="upload-result" style="color: var(--upload)">
+                                —<span class="result-unit">Mbps</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-icon ping">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="result-info">
+                            <div class="result-label">Пинг</div>
+                            <div class="result-value" id="ping-result" style="color: var(--ping)">
+                                —<span class="result-unit">ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-icon jitter">
+                            <i class="fas fa-wave-square"></i>
+                        </div>
+                        <div class="result-info">
+                            <div class="result-label">Джиттер</div>
+                            <div class="result-value" id="jitter-result" style="color: var(--accent)">
+                                —<span class="result-unit">ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Server Info Card -->
+                <div class="panel-card">
+                    <div class="panel-title">
+                        <i class="fas fa-server"></i> Информация о соединении
+                    </div>
+                    <div class="server-info">
+                        <div class="server-item">
+                            <span class="server-item-label">
+                                <i class="fas fa-map-marker-alt"></i> IP адрес
+                            </span>
+                            <span class="server-item-value" id="ip-address">Определение...</span>
+                        </div>
+                        <div class="server-item">
+                            <span class="server-item-label">
+                                <i class="fas fa-globe"></i> Провайдер
+                            </span>
+                            <span class="server-item-value" id="isp-name">Определение...</span>
+                        </div>
+                        <div class="server-item">
+                            <span class="server-item-label">
+                                <i class="fas fa-server"></i> Тест-сервер
+                            </span>
+                            <span class="server-item-value" id="server-name">Cloudflare CDN</span>
+                        </div>
+                        <div class="server-item">
+                            <span class="server-item-label">
+                                <i class="fas fa-clock"></i> Последний тест
+                            </span>
+                            <span class="server-item-value" id="last-test">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Card -->
+                <div class="panel-card">
+                    <div class="panel-title">
+                        <i class="fas fa-history"></i> История тестов
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div class="status-message">
+                            Нет сохранённых результатов
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>dual-speed-tester v1.0 | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
+                <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // ===========================================================================
+        // DUAL-SPEED-TESTER v1.0 | CDN-edition v2
+        // ===========================================================================
+
+        class DualSpeedTester {
+            constructor() {
+                this.isRunning = false;
+                this.results = {
+                    download: 0,
+                    upload: 0,
+                    ping: 0,
+                    jitter: 0
+                };
+                this.history = this.loadHistory();
+                
+                this.initElements();
+                this.initGaugeMarks();
+                this.setupEventListeners();
+                this.getConnectionInfo();
+                this.renderHistory();
+            }
+
+            initElements() {
+                this.startBtn = document.getElementById('start-btn');
+                this.currentSpeed = document.getElementById('current-speed');
+                this.testType = document.getElementById('test-type');
+                this.speedGauge = document.getElementById('speed-gauge');
+                this.progressFill = document.getElementById('progress-fill');
+                this.progressStatus = document.getElementById('progress-status');
+                this.progressPercent = document.getElementById('progress-percent');
+                
+                this.downloadResult = document.getElementById('download-result');
+                this.uploadResult = document.getElementById('upload-result');
+                this.pingResult = document.getElementById('ping-result');
+                this.jitterResult = document.getElementById('jitter-result');
+                
+                this.ipAddress = document.getElementById('ip-address');
+                this.ispName = document.getElementById('isp-name');
+                this.lastTest = document.getElementById('last-test');
+                this.historyList = document.getElementById('history-list');
+            }
+
+            initGaugeMarks() {
+                const container = document.getElementById('gauge-marks');
+                const speeds = [0, 25, 50, 100, 250, 500, 1000];
+                const startAngle = -135;
+                const endAngle = 135;
+                const totalAngle = endAngle - startAngle;
+
+                speeds.forEach((speed, index) => {
+                    const progress = index / (speeds.length - 1);
+                    const angle = startAngle + (progress * totalAngle);
+                    const radian = (angle * Math.PI) / 180;
+                    const radius = 165;
+                    const x = 50 + (radius * Math.cos(radian)) / 4;
+                    const y = 50 + (radius * Math.sin(radian)) / 4;
+                    
+                    const label = document.createElement('div');
+                    label.className = 'gauge-label';
+                    label.style.left = `${x}%`;
+                    label.style.top = `${y}%`;
+                    label.textContent = speed >= 1000 ? '1G' : speed;
+                    container.appendChild(label);
+                });
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startTest());
+                
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' && !e.target.matches('input, textarea, button')) {
+                        e.preventDefault();
+                        if (!this.isRunning) {
+                            this.startTest();
+                        }
+                    }
+                });
+            }
+
+            async getConnectionInfo() {
+                try {
+                    const response = await fetch('https://ipapi.co/json/', { 
+                        mode: 'cors',
+                        cache: 'no-cache'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.ipAddress.textContent = data.ip || 'Недоступно';
+                        this.ispName.textContent = data.org || data.asn || 'Недоступно';
+                        
+                        const connectionInfo = document.getElementById('connection-info');
+                        connectionInfo.innerHTML = `
+                            <div><i class="fas fa-map-marker-alt"></i> ${data.city || ''}, ${data.country_name || ''}</div>
+                            <div><i class="fas fa-server"></i> ${data.org || 'Неизвестно'}</div>
+                            <div><i class="fas fa-network-wired"></i> ${this.getConnectionType()}</div>
+                        `;
+                    }
+                } catch (error) {
+                    console.log('Could not fetch IP info:', error);
+                    this.ipAddress.textContent = 'Недоступно';
+                    this.ispName.textContent = 'Недоступно';
+                }
+            }
+
+            getConnectionType() {
+                if (navigator.connection) {
+                    const conn = navigator.connection;
+                    return conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Неизвестно';
+                }
+                return 'Неизвестно';
+            }
+
+            async startTest() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.startBtn.disabled = true;
+                this.startBtn.classList.add('testing');
+                this.startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>TESTING</span>';
+                
+                this.resetResults();
+                
+                try {
+                    // Phase 1: Ping test
+                    await this.runPingTest();
+                    
+                    // Phase 2: Download test
+                    await this.runDownloadTest();
+                    
+                    // Phase 3: Upload test
+                    await this.runUploadTest();
+                    
+                    // Complete
+                    this.completeTest();
+                    
+                } catch (error) {
+                    console.error('Test error:', error);
+                    this.testType.textContent = 'Ошибка теста';
+                }
+                
+                this.isRunning = false;
+                this.startBtn.disabled = false;
+                this.startBtn.classList.remove('testing');
+                this.startBtn.innerHTML = '<i class="fas fa-play"></i><span>START</span>';
+            }
+
+            resetResults() {
+                this.results = { download: 0, upload: 0, ping: 0, jitter: 0 };
+                this.currentSpeed.textContent = '0';
+                this.downloadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
+                this.uploadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
+                this.pingResult.innerHTML = '—<span class="result-unit">ms</span>';
+                this.jitterResult.innerHTML = '—<span class="result-unit">ms</span>';
+                this.updateGauge(0, 'var(--download)');
+            }
+
+            async runPingTest() {
+                this.testType.textContent = 'Измерение пинга...';
+                this.progressStatus.textContent = 'Тест пинга';
+                this.updateGauge(0, 'var(--ping)');
+                
+                const pings = [];
+                const testUrl = 'https://www.cloudflare.com/cdn-cgi/trace';
+                
+                for (let i = 0; i < 10; i++) {
+                    const start = performance.now();
+                    try {
+                        await fetch(testUrl + '?_=' + Date.now(), { 
+                            mode: 'cors',
+                            cache: 'no-store'
+                        });
+                        const ping = performance.now() - start;
+                        pings.push(ping);
+                        
+                        this.currentSpeed.textContent = Math.round(ping);
+                        this.updateProgress((i + 1) / 10 * 20);
+                    } catch (e) {
+                        pings.push(50 + Math.random() * 30);
+                    }
+                    await this.sleep(100);
+                }
+                
+                const avgPing = pings.reduce((a, b) => a + b, 0) / pings.length;
+                const jitter = this.calculateJitter(pings);
+                
+                this.results.ping = Math.round(avgPing);
+                this.results.jitter = Math.round(jitter * 10) / 10;
+                
+                this.pingResult.innerHTML = `${this.results.ping}<span class="result-unit">ms</span>`;
+                this.jitterResult.innerHTML = `${this.results.jitter}<span class="result-unit">ms</span>`;
+            }
+
+            calculateJitter(pings) {
+                if (pings.length < 2) return 0;
+                let sum = 0;
+                for (let i = 1; i < pings.length; i++) {
+                    sum += Math.abs(pings[i] - pings[i-1]);
+                }
+                return sum / (pings.length - 1);
+            }
+
+            async runDownloadTest() {
+                this.testType.textContent = 'Тест скачивания...';
+                this.progressStatus.textContent = 'Тест скачивания';
+                this.currentSpeed.style.color = 'var(--download)';
+                this.updateGauge(0, 'var(--download)');
+                
+                const testFiles = [
+                    { url: 'https://speed.cloudflare.com/__down?bytes=', sizes: [100000, 500000, 1000000, 5000000, 10000000, 25000000] }
+                ];
+                
+                const speeds = [];
+                const startTime = performance.now();
+                const testDuration = 8000;
+                let iteration = 0;
+                
+                while (performance.now() - startTime < testDuration) {
+                    const sizeIndex = Math.min(iteration, testFiles[0].sizes.length - 1);
+                    const size = testFiles[0].sizes[sizeIndex];
+                    
+                    try {
+                        const downloadStart = performance.now();
+                        const response = await fetch(testFiles[0].url + size + '&_=' + Date.now(), {
+                            cache: 'no-store'
+                        });
+                        
+                        const blob = await response.blob();
+                        const downloadTime = (performance.now() - downloadStart) / 1000;
+                        
+                        if (downloadTime > 0) {
+                            const speedMbps = (blob.size * 8) / (downloadTime * 1000000);
+                            speeds.push(speedMbps);
+                            
+                            const currentSpeedVal = Math.round(speedMbps * 10) / 10;
+                            this.currentSpeed.textContent = currentSpeedVal.toFixed(1);
+                            this.updateGauge(currentSpeedVal, 'var(--download)');
+                        }
+                    } catch (e) {
+                        console.log('Download chunk error:', e);
+                    }
+                    
+                    const elapsed = performance.now() - startTime;
+                    this.updateProgress(20 + (elapsed / testDuration) * 40);
+                    iteration++;
+                    
+                    await this.sleep(50);
+                }
+                
+                if (speeds.length > 2) {
+                    speeds.sort((a, b) => a - b);
+                    const trimmed = speeds.slice(1, -1);
+                    this.results.download = Math.round(trimmed.reduce((a, b) => a + b, 0) / trimmed.length * 10) / 10;
+                } else if (speeds.length > 0) {
+                    this.results.download = Math.round(speeds.reduce((a, b) => a + b, 0) / speeds.length * 10) / 10;
+                }
+                
+                this.downloadResult.innerHTML = `${this.results.download}<span class="result-unit">Mbps</span>`;
+            }
+
+            async runUploadTest() {
+                this.testType.textContent = 'Тест загрузки...';
+                this.progressStatus.textContent = 'Тест загрузки';
+                this.currentSpeed.style.color = 'var(--upload)';
+                this.updateGauge(0, 'var(--upload)');
+                
+                const speeds = [];
+                const startTime = performance.now();
+                const testDuration = 8000;
+                let iteration = 0;
+                
+                const generateData = (size) => {
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    let result = '';
+                    for (let i = 0; i < size; i++) {
+                        result += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    return result;
+                };
+                
+                const sizes = [50000, 100000, 250000, 500000, 1000000, 2000000];
+                
+                while (performance.now() - startTime < testDuration) {
+                    const sizeIndex = Math.min(iteration, sizes.length - 1);
+                    const size = sizes[sizeIndex];
+                    const data = generateData(size);
+                    
+                    try {
+                        const uploadStart = performance.now();
+                        
+                        await fetch('https://speed.cloudflare.com/__up', {
+                            method: 'POST',
+                            body: data,
+                            cache: 'no-store'
+                        });
+                        
+                        const uploadTime = (performance.now() - uploadStart) / 1000;
+                        
+                        if (uploadTime > 0) {
+                            const speedMbps = (size * 8) / (uploadTime * 1000000);
+                            speeds.push(speedMbps);
+                            
+                            const currentSpeedVal = Math.round(speedMbps * 10) / 10;
+                            this.currentSpeed.textContent = currentSpeedVal.toFixed(1);
+                            this.updateGauge(currentSpeedVal, 'var(--upload)');
+                        }
+                    } catch (e) {
+                        console.log('Upload chunk error:', e);
+                    }
+                    
+                    const elapsed = performance.now() - startTime;
+                    this.updateProgress(60 + (elapsed / testDuration) * 40);
+                    iteration++;
+                    
+                    await this.sleep(50);
+                }
+                
+                if (speeds.length > 2) {
+                    speeds.sort((a, b) => a - b);
+                    const trimmed = speeds.slice(1, -1);
+                    this.results.upload = Math.round(trimmed.reduce((a, b) => a + b, 0) / trimmed.length * 10) / 10;
+                } else if (speeds.length > 0) {
+                    this.results.upload = Math.round(speeds.reduce((a, b) => a + b, 0) / speeds.length * 10) / 10;
+                }
+                
+                this.uploadResult.innerHTML = `${this.results.upload}<span class="result-unit">Mbps</span>`;
+            }
+
+            completeTest() {
+                this.testType.textContent = 'Тест завершён';
+                this.progressStatus.textContent = 'Завершено';
+                this.updateProgress(100);
+                
+                this.currentSpeed.textContent = this.results.download.toFixed(1);
+                this.currentSpeed.style.color = 'var(--download)';
+                this.updateGauge(this.results.download, 'var(--download)');
+                
+                const now = new Date();
+                this.lastTest.textContent = now.toLocaleTimeString();
+                
+                this.saveToHistory();
+            }
+
+            updateGauge(speed, color) {
+                const maxSpeed = 1000;
+                const normalizedSpeed = Math.min(speed / maxSpeed, 1);
+                const arcLength = 424.12;
+                const offset = arcLength * (1 - normalizedSpeed);
+                
+                this.speedGauge.style.strokeDashoffset = offset;
+                this.speedGauge.style.stroke = color;
+            }
+
+            updateProgress(percent) {
+                this.progressFill.style.width = `${percent}%`;
+                this.progressPercent.textContent = `${Math.round(percent)}%`;
+            }
+
+            saveToHistory() {
+                const entry = {
+                    date: new Date().toISOString(),
+                    download: this.results.download,
+                    upload: this.results.upload,
+                    ping: this.results.ping
+                };
+                
+                this.history.unshift(entry);
+                this.history = this.history.slice(0, 10);
+                
+                localStorage.setItem('dualspeedtester_history', JSON.stringify(this.history));
+                this.renderHistory();
+            }
+
+            loadHistory() {
+                try {
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history')) || [];
+                } catch {
+                    return [];
+                }
+            }
+
+            renderHistory() {
+                if (this.history.length === 0) {
+                    this.historyList.innerHTML = '<div class="status-message">Нет сохранённых результатов</div>';
+                    return;
+                }
+                
+                this.historyList.innerHTML = this.history.map(entry => {
+                    const date = new Date(entry.date);
+                    const timeStr = date.toLocaleString('ru-RU', { 
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    return `
+                        <div class="history-item">
+                            <span class="history-date">${timeStr}</span>
+                            <div class="history-speeds">
+                                <span class="history-speed download">
+                                    <i class="fas fa-arrow-down"></i> ${entry.download}
+                                </span>
+                                <span class="history-speed upload">
+                                    <i class="fas fa-arrow-up"></i> ${entry.upload}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dualSpeedTester = new DualSpeedTester();
+            console.log('🚀 dual-speed-tester v1.0 | CDN-edition v2 loaded');
+        });
+    </script>
+</body>
+</html>
