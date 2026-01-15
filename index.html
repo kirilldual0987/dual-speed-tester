@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v2.5r</title>
+    <title>dual-speed-tester v3.1rt</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1175,14 +1175,221 @@
             border-radius: 50%;
             animation: pulse-dot 1.5s infinite;
         }
+
+        /* Version Selection Screen */
+        .version-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0e1420 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .version-selector.hidden {
+            display: none;
+        }
+
+        .version-selector-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+        }
+
+        .version-selector-logo {
+            font-size: 48px;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+
+        .version-selector-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 48px;
+        }
+
+        .version-selector-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        .version-buttons {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .version-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 32px 48px;
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 220px;
+        }
+
+        .version-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .version-btn.desktop {
+            border-color: var(--accent);
+        }
+
+        .version-btn.desktop:hover {
+            background: linear-gradient(135deg, rgba(92, 207, 230, 0.15) 0%, rgba(92, 207, 230, 0.05) 100%);
+            box-shadow: 0 15px 40px rgba(92, 207, 230, 0.2);
+        }
+
+        .version-btn.mobile {
+            border-color: var(--purple);
+        }
+
+        .version-btn.mobile:hover {
+            background: linear-gradient(135deg, rgba(195, 166, 255, 0.15) 0%, rgba(195, 166, 255, 0.05) 100%);
+            box-shadow: 0 15px 40px rgba(195, 166, 255, 0.2);
+        }
+
+        .version-btn-icon {
+            font-size: 48px;
+        }
+
+        .version-btn.desktop .version-btn-icon {
+            color: var(--accent);
+        }
+
+        .version-btn.mobile .version-btn-icon {
+            color: var(--purple);
+        }
+
+        .version-btn-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .version-btn-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            max-width: 150px;
+        }
+
+        .beta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--warning) 0%, #ff9966 100%);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 8px;
+            animation: pulse-beta 2s infinite;
+        }
+
+        @keyframes pulse-beta {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .version-selector-footer {
+            margin-top: 48px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .version-selector-footer span {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .version-selector-content {
+                padding: 24px;
+            }
+
+            .version-selector-logo {
+                font-size: 32px;
+            }
+
+            .version-buttons {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .version-btn {
+                padding: 24px 32px;
+                min-width: auto;
+                width: 100%;
+            }
+
+            .version-btn-icon {
+                font-size: 36px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <!-- Version Selection Screen -->
+    <div class="version-selector" id="version-selector">
+        <div class="version-selector-content">
+            <div class="version-selector-logo">
+                <i class="fas fa-tachometer-alt"></i> dual-speed-tester
+            </div>
+            <div class="version-selector-subtitle">
+                Профессиональный анализатор скорости интернет-соединения
+            </div>
+            
+            <div class="version-selector-title">Выберите версию</div>
+            
+            <div class="version-buttons">
+                <button class="version-btn desktop" id="btn-desktop">
+                    <div class="version-btn-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="version-btn-title">Обычная версия</div>
+                    <div class="version-btn-desc">Полный интерфейс для ПК и ноутбуков</div>
+                </button>
+                
+                <button class="version-btn mobile" id="btn-mobile">
+                    <div class="version-btn-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="version-btn-title">Мобильная версия <span class="beta-badge">beta</span></div>
+                    <div class="version-btn-desc">Оптимизировано для смартфонов</div>
+                </button>
+            </div>
+            
+            <div class="version-selector-footer">
+                <span>v3.1rt</span> | CDN-edition v2
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display: none;">
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v2.5r</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v3.1rt</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -1499,7 +1706,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v2.5r | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v3.1rt | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1508,9 +1715,19 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v2.5r | CDN-edition v2
+        // DUAL-SPEED-TESTER v3.1rt | CDN-edition v2
         // Advanced Connection Type Detection System
         // ===========================================================================
+
+        // Version Selection Handler
+        document.getElementById('btn-desktop').addEventListener('click', function() {
+            document.getElementById('version-selector').classList.add('hidden');
+            document.getElementById('app-container').style.display = 'flex';
+        });
+
+        document.getElementById('btn-mobile').addEventListener('click', function() {
+            window.location.href = 'https://kirilldual0987.github.io/dual-speed-tester-mobile/';
+        });
 
         // Connection Type Definitions
         const CONNECTION_TYPES = {
@@ -3168,13 +3385,13 @@
                 });
                 
                 this.history = this.history.slice(0, 10);
-                localStorage.setItem('dualspeedtester_history_v23r', JSON.stringify(this.history));
+                localStorage.setItem('dualspeedtester_history_v31rt', JSON.stringify(this.history));
                 this.renderHistory();
             }
 
             loadHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v23r')) || [];
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v31rt')) || [];
                 } catch {
                     return [];
                 }
@@ -3213,7 +3430,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v2.5r | CDN-edition v2 | Advanced Connection Detection');
+            console.log('🚀 dual-speed-tester v3.1rt | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
