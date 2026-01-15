@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v2.2r</title>
+    <title>dual-speed-tester v2.5r</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -283,7 +283,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            transform: rotate(-135deg);
+            transform: rotate(-90deg);
         }
 
         .speedometer-bg {
@@ -299,8 +299,20 @@
             stroke-linecap: round;
             stroke-dasharray: 565.48;
             stroke-dashoffset: 565.48;
-            transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+            transition: stroke-dashoffset 0.15s ease, stroke 0.3s ease;
             filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .speedometer-svg.testing {
+            animation: rotate-glow 2s linear infinite;
+        }
+
+        @keyframes rotate-glow {
+            0% { filter: drop-shadow(0 0 15px rgba(92, 207, 230, 0.8)); }
+            25% { filter: drop-shadow(0 0 25px rgba(79, 214, 190, 0.9)); }
+            50% { filter: drop-shadow(0 0 15px rgba(195, 166, 255, 0.8)); }
+            75% { filter: drop-shadow(0 0 25px rgba(255, 204, 102, 0.9)); }
+            100% { filter: drop-shadow(0 0 15px rgba(92, 207, 230, 0.8)); }
         }
 
         .speed-display {
@@ -1080,18 +1092,13 @@
             }
         }
 
-        /* Gauge marks */
+        /* Gauge marks - hidden */
         .gauge-marks {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            display: none;
         }
 
         .gauge-label {
-            position: absolute;
-            font-size: 11px;
-            color: var(--text-muted);
-            transform: translate(-50%, -50%);
+            display: none;
         }
 
         /* Scrollbar */
@@ -1175,7 +1182,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v2.2r</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v2.5r</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -1212,18 +1219,15 @@
             <!-- Speedometer Section -->
             <div class="speedometer-section">
                 <div class="speedometer-container">
-                    <svg class="speedometer-svg" viewBox="0 0 200 200">
-                        <circle class="speedometer-bg" cx="100" cy="100" r="90" 
-                                stroke-dasharray="424.12" stroke-dashoffset="141.37"/>
+                    <svg class="speedometer-svg" id="speedometer-svg" viewBox="0 0 200 200">
+                        <circle class="speedometer-bg" cx="100" cy="100" r="90"/>
                         <circle class="speedometer-progress" id="speed-gauge" cx="100" cy="100" r="90"
                                 stroke="var(--download)"/>
                     </svg>
                     
-                    <div class="gauge-marks" id="gauge-marks"></div>
-                    
                     <div class="speed-display">
                         <div class="current-speed" id="current-speed">0</div>
-                        <div class="speed-unit">Mbps</div>
+                        <div class="speed-unit" id="speed-unit">Mbps</div>
                         <div class="test-type" id="test-type">Готов к тесту</div>
                     </div>
                 </div>
@@ -1495,7 +1499,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v2.2r | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v2.5r | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1504,7 +1508,7 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v2.2r | CDN-edition v2
+        // DUAL-SPEED-TESTER v2.5r | CDN-edition v2
         // Advanced Connection Type Detection System
         // ===========================================================================
 
@@ -2409,6 +2413,8 @@
                 this.currentSpeed = document.getElementById('current-speed');
                 this.testType = document.getElementById('test-type');
                 this.speedGauge = document.getElementById('speed-gauge');
+                this.speedometerSvg = document.getElementById('speedometer-svg');
+                this.speedUnit = document.getElementById('speed-unit');
                 this.progressFill = document.getElementById('progress-fill');
                 this.progressStatus = document.getElementById('progress-status');
                 this.progressPercent = document.getElementById('progress-percent');
@@ -2473,27 +2479,7 @@
             }
 
             initGaugeMarks() {
-                const container = document.getElementById('gauge-marks');
-                const speeds = [0, 25, 50, 100, 250, 500, 1000];
-                const startAngle = -135;
-                const endAngle = 135;
-                const totalAngle = endAngle - startAngle;
-
-                speeds.forEach((speed, index) => {
-                    const progress = index / (speeds.length - 1);
-                    const angle = startAngle + (progress * totalAngle);
-                    const radian = (angle * Math.PI) / 180;
-                    const radius = 165;
-                    const x = 50 + (radius * Math.cos(radian)) / 4;
-                    const y = 50 + (radius * Math.sin(radian)) / 4;
-                    
-                    const label = document.createElement('div');
-                    label.className = 'gauge-label';
-                    label.style.left = `${x}%`;
-                    label.style.top = `${y}%`;
-                    label.textContent = speed >= 1000 ? '1G' : speed;
-                    container.appendChild(label);
-                });
+                // Removed - no gauge marks in v2.4r
             }
 
             setupEventListeners() {
@@ -2860,6 +2846,9 @@
                 
                 this.resetResults();
                 this.ratingCard.classList.remove('visible');
+                this.speedometerSvg.classList.add('testing');
+                this.speedUnit.textContent = 'Mbps';
+                this.speedUnit.style.display = 'block';
                 
                 try {
                     await this.runPingTest();
@@ -2874,6 +2863,7 @@
                 this.isRunning = false;
                 this.startBtn.disabled = false;
                 this.startBtn.classList.remove('testing');
+                this.speedometerSvg.classList.remove('testing');
                 this.startBtn.innerHTML = '<i class="fas fa-play"></i><span>START</span>';
             }
 
@@ -2881,6 +2871,9 @@
                 this.results = { download: 0, upload: 0, ping: 0, jitter: 0 };
                 this.currentSpeed.textContent = '0';
                 this.currentSpeed.style.fontSize = ''; // Reset font size for speed display
+                this.currentSpeed.style.color = 'var(--text-primary)';
+                this.speedUnit.textContent = 'Mbps';
+                this.speedUnit.style.display = 'block';
                 this.downloadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
                 this.uploadResult.innerHTML = '—<span class="result-unit">Mbps</span>';
                 this.pingResult.innerHTML = '—<span class="result-unit">ms</span>';
@@ -2895,6 +2888,7 @@
             async runPingTest() {
                 this.testType.textContent = 'Измерение пинга...';
                 this.progressStatus.textContent = 'Тест пинга';
+                this.speedUnit.textContent = 'ms';
                 this.updateGauge(0, 'var(--ping)');
                 
                 const pings = [];
@@ -2935,6 +2929,7 @@
             async runDownloadTest() {
                 this.testType.textContent = 'Тест скачивания...';
                 this.progressStatus.textContent = 'Тест скачивания';
+                this.speedUnit.textContent = 'Mbps';
                 this.currentSpeed.style.color = 'var(--download)';
                 this.updateGauge(0, 'var(--download)');
                 
@@ -2981,6 +2976,7 @@
             async runUploadTest() {
                 this.testType.textContent = 'Тест загрузки...';
                 this.progressStatus.textContent = 'Тест загрузки';
+                this.speedUnit.textContent = 'Mbps';
                 this.currentSpeed.style.color = 'var(--upload)';
                 this.updateGauge(0, 'var(--upload)');
                 
@@ -3067,9 +3063,10 @@
                 this.currentSpeed.textContent = level.name;
                 this.currentSpeed.style.color = level.color;
                 this.currentSpeed.style.fontSize = '48px'; // Smaller font for text
+                this.speedUnit.style.display = 'none'; // Hide Mbps unit
                 
-                // Fill gauge completely with rating color (visual indicator of completion)
-                this.updateGauge(1000, level.color);
+                // Fill gauge completely (360°) with rating color
+                this.updateGauge(0, level.color, true);
                 
                 this.saveToHistory(score, level.name, updatedResult.type.nameRu);
             }
@@ -3133,9 +3130,21 @@
                 return { score, level };
             }
 
-            updateGauge(speed, color) {
-                const offset = 424.12 * (1 - Math.min(speed / 1000, 1));
-                this.speedGauge.style.strokeDashoffset = offset;
+            updateGauge(speed, color, isComplete = false) {
+                // Circle circumference = 2 * PI * 90 = 565.48
+                // Full 360 degree circle
+                const fullCircle = 565.48;
+                
+                if (isComplete) {
+                    // Full circle for completion
+                    this.speedGauge.style.strokeDashoffset = 0;
+                } else {
+                    // During test - show progress based on speed (0-1000 Mbps scale)
+                    const progress = Math.min(speed / 500, 1); // Scale to 500 for better visual
+                    const offset = fullCircle * (1 - progress);
+                    this.speedGauge.style.strokeDashoffset = offset;
+                }
+                
                 this.speedGauge.style.stroke = color;
             }
 
@@ -3159,13 +3168,13 @@
                 });
                 
                 this.history = this.history.slice(0, 10);
-                localStorage.setItem('dualspeedtester_history_v22r', JSON.stringify(this.history));
+                localStorage.setItem('dualspeedtester_history_v23r', JSON.stringify(this.history));
                 this.renderHistory();
             }
 
             loadHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v22r')) || [];
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v23r')) || [];
                 } catch {
                     return [];
                 }
@@ -3204,7 +3213,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v2.2r | CDN-edition v2 | Advanced Connection Detection');
+            console.log('🚀 dual-speed-tester v2.5r | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
