@@ -1293,24 +1293,7 @@
             max-width: 150px;
         }
 
-        .beta-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--warning) 0%, #ff9966 100%);
-            color: #000;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-left: 8px;
-            animation: pulse-beta 2s infinite;
-        }
 
-        @keyframes pulse-beta {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
 
         .version-selector-footer {
             margin-top: 48px;
@@ -1372,10 +1355,10 @@
                 
                 <button class="version-btn mobile" id="btn-mobile">
                     <div class="version-btn-icon">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="fas fa-feather-alt"></i>
                     </div>
-                    <div class="version-btn-title">Мобильная версия <span class="beta-badge">beta</span></div>
-                    <div class="version-btn-desc">Оптимизировано для смартфонов</div>
+                    <div class="version-btn-title">Light-версия</div>
+                    <div class="version-btn-desc">Подходит для любого типа устройств, включая смартфоны</div>
                 </button>
             </div>
             
@@ -1726,7 +1709,7 @@
         });
 
         document.getElementById('btn-mobile').addEventListener('click', function() {
-            window.location.href = 'https://kirilldual0987.github.io/dual-speed-tester-mobile/';
+            window.location.href = 'https://kirilldual0987.github.io/dual-speed-tester-light/';
         });
 
         // Connection Type Definitions
