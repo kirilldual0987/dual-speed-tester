@@ -32,7 +32,7 @@ https://kirilldual0987.github.io/dual-speed-tester/
 
 
 
-# dual-speed-tester v3.1rt | CDN-edition v2
+# dual-speed-tester v4.1ng | CDN-edition v2
 
 ## 📋 Полное описание
 
@@ -338,7 +338,7 @@ localStorage.setItem('dualspeedtester_history', JSON.stringify([
 
 | Версия | Описание |
 |--------|----------|
-| **v3.1rt CDN-edition v2** | Текущая версия с Cloudflare CDN |
+| **v4.1ng CDN-edition v2** | Текущая версия с Cloudflare CDN |
 
 ---
 
