@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v3.1rt</title>
+    <title>dual-speed-tester v4.1ng</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1225,26 +1225,27 @@
             margin-bottom: 24px;
         }
 
-        .version-buttons {
-            display: flex;
-            gap: 24px;
+        .version-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             justify-content: center;
-            flex-wrap: wrap;
+            max-width: 520px;
         }
 
         .version-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
-            padding: 32px 48px;
-            border-radius: 20px;
+            gap: 12px;
+            padding: 24px 20px;
+            border-radius: 16px;
             border: 2px solid var(--border);
             background: linear-gradient(135deg, var(--bg-card) 0%, #1c2538 100%);
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 220px;
+            min-width: 240px;
         }
 
         .version-btn:hover {
@@ -1271,7 +1272,7 @@
         }
 
         .version-btn-icon {
-            font-size: 48px;
+            font-size: 40px;
         }
 
         .version-btn.desktop .version-btn-icon {
@@ -1283,14 +1284,59 @@
         }
 
         .version-btn-title {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 700;
+            text-align: center;
         }
 
         .version-btn-desc {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            max-width: 150px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .version-btn.project {
+            border-color: var(--success);
+        }
+
+        .version-btn.project:hover {
+            background: linear-gradient(135deg, rgba(79, 214, 190, 0.15) 0%, rgba(79, 214, 190, 0.05) 100%);
+            box-shadow: 0 15px 40px rgba(79, 214, 190, 0.2);
+        }
+
+        .version-btn.project .version-btn-icon {
+            color: var(--success);
+        }
+
+        .version-btn.project2 {
+            border-color: var(--warning);
+        }
+
+        .version-btn.project2:hover {
+            background: linear-gradient(135deg, rgba(255, 204, 102, 0.15) 0%, rgba(255, 204, 102, 0.05) 100%);
+            box-shadow: 0 15px 40px rgba(255, 204, 102, 0.2);
+        }
+
+        .version-btn.project2 .version-btn-icon {
+            color: var(--warning);
+        }
+
+        .version-btn-subtitle {
+            font-size: 9px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .telegram-channels-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 12px;
+            opacity: 0.7;
         }
 
 
@@ -1307,26 +1353,38 @@
 
         @media (max-width: 600px) {
             .version-selector-content {
-                padding: 24px;
+                padding: 20px;
             }
 
             .version-selector-logo {
-                font-size: 32px;
+                font-size: 28px;
             }
 
-            .version-buttons {
-                flex-direction: column;
-                gap: 16px;
+            .version-buttons-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                max-width: 100%;
             }
 
             .version-btn {
-                padding: 24px 32px;
+                padding: 16px 12px;
                 min-width: auto;
-                width: 100%;
             }
 
             .version-btn-icon {
-                font-size: 36px;
+                font-size: 28px;
+            }
+
+            .version-btn-title {
+                font-size: 12px;
+            }
+
+            .version-btn-desc {
+                font-size: 9px;
+            }
+
+            .version-btn-subtitle {
+                font-size: 8px;
             }
         }
     </style>
@@ -1344,7 +1402,7 @@
             
             <div class="version-selector-title">Выберите версию</div>
             
-            <div class="version-buttons">
+            <div class="version-buttons-grid">
                 <button class="version-btn desktop" id="btn-desktop">
                     <div class="version-btn-icon">
                         <i class="fas fa-desktop"></i>
@@ -1360,10 +1418,30 @@
                     <div class="version-btn-title">Light-версия</div>
                     <div class="version-btn-desc">Подходит для любого типа устройств, включая смартфоны</div>
                 </button>
+                
+                <button class="version-btn project" id="btn-runget">
+                    <div class="version-btn-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="version-btn-title">Runget-operating-system</div>
+                    <div class="version-btn-desc">Операционная система нового поколения</div>
+                    <div class="version-btn-subtitle">ещё один наш проект</div>
+                </button>
+                
+                <button class="version-btn project2" id="btn-dgc">
+                    <div class="version-btn-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="version-btn-title">dual gaming centre</div>
+                    <div class="version-btn-desc">Лучший сайт для игр онлайн, без рекламы и без платежей</div>
+                    <div class="version-btn-subtitle">ещё один наш проект</div>
+                </button>
             </div>
             
+            <div class="telegram-channels-label">telegram channels</div>
+            
             <div class="version-selector-footer">
-                <span>v3.1rt</span> | CDN-edition v2
+                <span>v4.1ng</span> | CDN-edition v2
             </div>
         </div>
     </div>
@@ -1372,7 +1450,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v3.1rt</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v4.1ng</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -1689,7 +1767,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v3.1rt | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v4.1ng | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1698,7 +1776,7 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v3.1rt | CDN-edition v2
+        // DUAL-SPEED-TESTER v4.1ng | CDN-edition v2
         // Advanced Connection Type Detection System
         // ===========================================================================
 
@@ -1710,6 +1788,14 @@
 
         document.getElementById('btn-mobile').addEventListener('click', function() {
             window.location.href = 'https://kirilldual0987.github.io/dual-speed-tester-light/';
+        });
+
+        document.getElementById('btn-runget').addEventListener('click', function() {
+            window.location.href = 'https://t.me/runget_rt';
+        });
+
+        document.getElementById('btn-dgc').addEventListener('click', function() {
+            window.location.href = 'https://t.me/DGC_off';
         });
 
         // Connection Type Definitions
@@ -3368,13 +3454,13 @@
                 });
                 
                 this.history = this.history.slice(0, 10);
-                localStorage.setItem('dualspeedtester_history_v31rt', JSON.stringify(this.history));
+                localStorage.setItem('dualspeedtester_history_v40ng', JSON.stringify(this.history));
                 this.renderHistory();
             }
 
             loadHistory() {
                 try {
-                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v31rt')) || [];
+                    return JSON.parse(localStorage.getItem('dualspeedtester_history_v40ng')) || [];
                 } catch {
                     return [];
                 }
@@ -3413,7 +3499,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v3.1rt | CDN-edition v2 | Advanced Connection Detection');
+            console.log('🚀 dual-speed-tester v4.1ng | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
