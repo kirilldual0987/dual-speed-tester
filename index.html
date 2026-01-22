@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dual-speed-tester v4.1ng</title>
+    <title>dual-speed-tester v4.2ng</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1441,7 +1441,7 @@
             <div class="telegram-channels-label">telegram channels</div>
             
             <div class="version-selector-footer">
-                <span>v4.1ng</span> | CDN-edition v2
+                <span>v4.2ng</span> | CDN-edition v2
             </div>
         </div>
     </div>
@@ -1450,7 +1450,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
-                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v4.1ng</h1>
+                <h1><i class="fas fa-tachometer-alt"></i> dual-speed-tester v4.2ng</h1>
                 <p>
                     <i class="fas fa-wifi"></i> Network Performance Analyzer
                     <span style="color: var(--accent); margin: 0 8px">•</span>
@@ -1767,7 +1767,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v4.1ng | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v4.2ng | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1776,9 +1776,27 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v4.1ng | CDN-edition v2
+        // DUAL-SPEED-TESTER v4.2ng | CDN-edition v2
         // Advanced Connection Type Detection System
         // ===========================================================================
+
+        // Play startup sound
+        (function() {
+            const startupSound = new Audio('ds-start.mp3');
+            startupSound.volume = 0.5;
+            startupSound.play().catch(function(e) {
+                // Autoplay blocked, try on first interaction
+                const playOnInteraction = function() {
+                    startupSound.play().catch(function() {});
+                    document.removeEventListener('click', playOnInteraction);
+                    document.removeEventListener('touchstart', playOnInteraction);
+                    document.removeEventListener('keydown', playOnInteraction);
+                };
+                document.addEventListener('click', playOnInteraction);
+                document.addEventListener('touchstart', playOnInteraction);
+                document.addEventListener('keydown', playOnInteraction);
+            });
+        })();
 
         // Version Selection Handler
         document.getElementById('btn-desktop').addEventListener('click', function() {
@@ -3499,7 +3517,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v4.1ng | CDN-edition v2 | Advanced Connection Detection');
+            console.log('🚀 dual-speed-tester v4.2ng | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
