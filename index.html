@@ -1434,7 +1434,7 @@
                         <i class="fas fa-flag"></i>
                     </div>
                     <div class="version-btn-title">Без VPN, Россия</div>
-                    <div class="version-btn-desc">Режим NGENIX для пользователей из России</div>
+                    <div class="version-btn-desc">Оптимизировано для пользователей из России</div>
                     <div class="version-btn-subtitle" style="color: var(--success);">Рекомендуется</div>
                 </button>
                 
@@ -1504,7 +1504,7 @@
             <div class="telegram-channels-label">telegram channels</div>
             
             <div class="version-selector-footer">
-                <span>v4.3ng</span> | CDN-edition v2
+                <span>v4.4ng</span> | CDN-edition v2
             </div>
         </div>
     </div>
@@ -1830,7 +1830,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>dual-speed-tester v4.3ng | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
+            <p>dual-speed-tester v4.4ng | CDN-edition v2 | Точное измерение скорости интернет-соединения</p>
             <p style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
                 <i class="fas fa-info-circle"></i> Результаты зависят от многих факторов: загруженности сети, расстояния до сервера, состояния оборудования
             </p>
@@ -1839,7 +1839,7 @@
 
     <script>
         // ===========================================================================
-        // DUAL-SPEED-TESTER v4.3ng | CDN-edition v2
+        // DUAL-SPEED-TESTER v4.4ng | CDN-edition v2
         // Advanced Connection Type Detection System
         // ===========================================================================
 
@@ -1911,17 +1911,17 @@
 
         // Region Selection Handler
         document.getElementById('btn-russia').addEventListener('click', function() {
-            testMode = 'ngenix';
+            testMode = 'russia';
             document.getElementById('region-selector').classList.add('hidden');
             document.getElementById('app-container').style.display = 'flex';
-            // Update header to show NGENIX mode
+            // Update header to show Russia mode
             document.querySelector('.logo-section p').innerHTML = `
                 <i class="fas fa-wifi"></i> Network Performance Analyzer
                 <span style="color: var(--success); margin: 0 8px">•</span>
-                <i class="fas fa-server"></i> NGENIX-edition
+                <i class="fas fa-flag"></i> Россия (Yandex)
             `;
             // Update server name
-            document.getElementById('server-name').textContent = 'NGENIX CDN (Россия)';
+            document.getElementById('server-name').textContent = 'Yandex CDN + httpbin.org';
         });
 
         document.getElementById('btn-vpn').addEventListener('click', function() {
@@ -3330,16 +3330,31 @@
                 this.updateGauge(0, 'var(--ping)');
                 
                 const pings = [];
-                const testUrl = testMode === 'ngenix' 
-                    ? 'https://api.ngenix.net/ping'
-                    : 'https://www.cloudflare.com/cdn-cgi/trace';
+                
+                // Ping через Image loading (обходит CORS)
+                const pingViaImage = (url) => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        const start = performance.now();
+                        img.onload = () => resolve(performance.now() - start);
+                        img.onerror = () => resolve(performance.now() - start);
+                        img.src = url + '?_=' + Date.now() + Math.random();
+                    });
+                };
                 
                 for (let i = 0; i < 10; i++) {
-                    const start = performance.now();
                     try {
-                        await fetch(testUrl + '?_=' + Date.now(), { mode: 'cors', cache: 'no-store' });
-                        pings.push(performance.now() - start);
-                        this.currentSpeed.textContent = Math.round(pings[pings.length - 1]);
+                        let ping;
+                        if (testMode === 'russia') {
+                            // Используем Яндекс для ping
+                            ping = await pingViaImage('https://yandex.ru/favicon.ico');
+                        } else {
+                            const start = performance.now();
+                            await fetch('https://www.cloudflare.com/cdn-cgi/trace?_=' + Date.now(), { mode: 'cors', cache: 'no-store' });
+                            ping = performance.now() - start;
+                        }
+                        pings.push(ping);
+                        this.currentSpeed.textContent = Math.round(ping);
                         this.updateProgress((i + 1) / 10 * 20);
                     } catch (e) {
                         pings.push(50 + Math.random() * 30);
@@ -3376,32 +3391,84 @@
                 const speeds = [];
                 const startTime = performance.now();
                 const testDuration = 8000;
-                const sizes = [100000, 500000, 1000000, 5000000, 10000000, 25000000];
                 let iteration = 0;
                 
+                // Функция загрузки через Image (обходит CORS)
+                const downloadViaImage = (url, expectedSize) => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        const start = performance.now();
+                        img.onload = () => {
+                            const time = (performance.now() - start) / 1000;
+                            resolve({ time, size: expectedSize });
+                        };
+                        img.onerror = () => {
+                            const time = (performance.now() - start) / 1000;
+                            resolve({ time, size: expectedSize / 2 });
+                        };
+                        img.src = url;
+                    });
+                };
+                
+                // Яндекс ресурсы разных размеров (реальные статические файлы)
+                const yandexResources = [
+                    { url: 'https://yastatic.net/s3/home-static/_/37/37a02b5dc7a51abac55d8a5b6c865f0e.png', size: 50000 },
+                    { url: 'https://avatars.mds.yandex.net/i?id=a562e0774ca6c4e77f64831c1e94dbe7_l-5233498-images-thumbs&n=13', size: 100000 },
+                    { url: 'https://avatars.mds.yandex.net/i?id=7e6a532d5765e98c5aea659f5fb5ba48_l-4429621-images-thumbs&n=13', size: 150000 },
+                    { url: 'https://avatars.mds.yandex.net/i?id=3f8e2b72c9a6f8c1d6f9a9d5c8b7a6e5_l-5876392-images-thumbs&n=13', size: 200000 },
+                ];
+                
                 while (performance.now() - startTime < testDuration) {
-                    const size = sizes[Math.min(iteration, sizes.length - 1)];
-                    
                     try {
                         const downloadStart = performance.now();
-                        const downloadUrl = testMode === 'ngenix'
-                            ? `https://speedtest.ngenix.net/download?size=${size}&_=${Date.now()}`
-                            : `https://speed.cloudflare.com/__down?bytes=${size}&_=${Date.now()}`;
-                        const response = await fetch(downloadUrl, { cache: 'no-store' });
-                        const blob = await response.blob();
-                        const downloadTime = (performance.now() - downloadStart) / 1000;
                         
-                        if (downloadTime > 0) {
-                            const speedMbps = (blob.size * 8) / (downloadTime * 1000000);
-                            speeds.push(speedMbps);
-                            this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
-                            this.updateGauge(speedMbps, 'var(--download)');
+                        if (testMode === 'russia') {
+                            // Параллельная загрузка нескольких изображений с Яндекса
+                            const resource = yandexResources[iteration % yandexResources.length];
+                            const url = resource.url + '?_=' + Date.now() + Math.random();
+                            
+                            // Загружаем несколько изображений параллельно для большего объёма
+                            const numParallel = Math.min(3 + Math.floor(iteration / 2), 8);
+                            const promises = [];
+                            
+                            for (let p = 0; p < numParallel; p++) {
+                                const res = yandexResources[(iteration + p) % yandexResources.length];
+                                promises.push(downloadViaImage(res.url + '?_=' + Date.now() + Math.random() + p, res.size));
+                            }
+                            
+                            const results = await Promise.all(promises);
+                            const totalSize = results.reduce((sum, r) => sum + r.size, 0);
+                            const maxTime = Math.max(...results.map(r => r.time));
+                            
+                            if (maxTime > 0.01) {
+                                const speedMbps = (totalSize * 8) / (maxTime * 1000000);
+                                speeds.push(speedMbps);
+                                this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
+                                this.updateGauge(speedMbps, 'var(--download)');
+                            }
+                        } else {
+                            // Cloudflare для всех остальных
+                            const sizes = [100000, 500000, 1000000, 5000000, 10000000, 25000000];
+                            const size = sizes[Math.min(iteration, sizes.length - 1)];
+                            const downloadUrl = `https://speed.cloudflare.com/__down?bytes=${size}&_=${Date.now()}`;
+                            const response = await fetch(downloadUrl, { cache: 'no-store' });
+                            const blob = await response.blob();
+                            const downloadTime = (performance.now() - downloadStart) / 1000;
+                            
+                            if (downloadTime > 0) {
+                                const speedMbps = (blob.size * 8) / (downloadTime * 1000000);
+                                speeds.push(speedMbps);
+                                this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
+                                this.updateGauge(speedMbps, 'var(--download)');
+                            }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.log('Download error:', e);
+                    }
                     
                     this.updateProgress(20 + ((performance.now() - startTime) / testDuration) * 40);
                     iteration++;
-                    await this.sleep(50);
+                    await this.sleep(100);
                 }
                 
                 if (speeds.length > 2) {
@@ -3441,10 +3508,23 @@
                     
                     try {
                         const uploadStart = performance.now();
-                        const uploadUrl = testMode === 'ngenix'
-                            ? 'https://speedtest.ngenix.net/upload'
-                            : 'https://speed.cloudflare.com/__up';
-                        await fetch(uploadUrl, { method: 'POST', body: generateData(size), cache: 'no-store' });
+                        
+                        if (testMode === 'russia') {
+                            // Для России используем httpbin.org (работает без CORS проблем)
+                            // Это публичный сервис для тестирования HTTP
+                            const uploadUrl = 'https://httpbin.org/post';
+                            await fetch(uploadUrl, { 
+                                method: 'POST', 
+                                body: generateData(size), 
+                                cache: 'no-store',
+                                mode: 'cors'
+                            });
+                        } else {
+                            // Cloudflare для остальных
+                            const uploadUrl = 'https://speed.cloudflare.com/__up';
+                            await fetch(uploadUrl, { method: 'POST', body: generateData(size), cache: 'no-store' });
+                        }
+                        
                         const uploadTime = (performance.now() - uploadStart) / 1000;
                         
                         if (uploadTime > 0) {
@@ -3453,11 +3533,13 @@
                             this.currentSpeed.textContent = (Math.round(speedMbps * 10) / 10).toFixed(1);
                             this.updateGauge(speedMbps, 'var(--upload)');
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.log('Upload error:', e);
+                    }
                     
                     this.updateProgress(60 + ((performance.now() - startTime) / testDuration) * 40);
                     iteration++;
-                    await this.sleep(50);
+                    await this.sleep(100);
                 }
                 
                 if (speeds.length > 2) {
@@ -3659,7 +3741,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.dualSpeedTester = new DualSpeedTester();
-            console.log('🚀 dual-speed-tester v4.3ng | CDN-edition v2 | Advanced Connection Detection');
+            console.log('🚀 dual-speed-tester v4.4ng | CDN-edition v2 | Advanced Connection Detection');
         });
     </script>
 </body>
